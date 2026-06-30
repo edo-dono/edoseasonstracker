@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="edoSeasonsTracker">
-<meta name="theme-color" content="#FBF7F2">
-<meta name="description" content="Saisonnalité des fruits, légumes, champignons, oléagineux et produits suisses : période, conservation et origine recommandée.">
+<meta name="theme-color" content="#FBF7F2" id="themeColorMeta">
+<meta name="description" content="Saisonnalité des fruits, légumes, champignons, oléagineux et produits suisses : période, conservation, origine et empreinte transport.">
 <title>edoSeasonsTracker</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -15,119 +15,116 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script>
+  try{
+    var st=(JSON.parse(localStorage.getItem('edoseasonstracker')||'{}').settings)||{};
+    var th=st.theme||'auto';
+    var mode=th==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):th;
+    document.documentElement.setAttribute('data-theme',mode);
+    if(st.cb) document.documentElement.setAttribute('data-cb','1');
+  }catch(e){ document.documentElement.setAttribute('data-theme','light'); }
+</script>
 <style>
   :root{
-    --accent:#E0892F;        /* abricot — accent texte / actif */
-    --accent-2:#D9663F;      /* terracotta — favoris */
-    --s-ext:#F4A24A;         /* de saison, culture en extérieur */
-    --s-serre:#7CB36A;       /* culture sous serre */
-    --s-cons:#F8D9B4;        /* conservation / disponible */
-    --s-off:#ECE4DA;         /* hors saison */
-    --fruit:#2E7DD1;         /* tag fruit (bleu) */
-    --leg:#4E8B3D;           /* tag légume (vert) */
-    --champ:#7E7368;         /* tag champignon (gris) — inversé */
-    --divers:#9B6FB0;        /* tag divers (mauve) — inversé */
-    --oleo:#B5852F;          /* tag oléagineux (ocre) */
-    --bg:#FBF7F2;
-    --surface:#FFFFFF;
-    --surface-2:#F4EEE6;
-    --ink:#2E2620;
-    --muted:#8A7F75;
-    --hair:#EBE1D6;
+    --accent:#E0892F; --accent-2:#D9663F;
+    --s-ext:#F4A24A; --s-serre:#7CB36A; --s-cons:#F8D9B4; --s-off:#ECE4DA;
+    --fruit:#2E7DD1; --leg:#4E8B3D; --champ:#7E7368; --divers:#9B6FB0; --oleo:#B5852F;
+    --bg:#FBF7F2; --surface:#FFFFFF; --surface-2:#F4EEE6; --ink:#2E2620; --muted:#8A7F75; --hair:#EBE1D6;
     --shadow:0 1px 2px rgba(70,45,25,.04), 0 8px 24px rgba(70,45,25,.06);
-    --radius:18px;
-    --safe-top:env(safe-area-inset-top,0px);
-    --safe-bot:env(safe-area-inset-bottom,0px);
+    --toast-bg:#2E2620; --toast-fg:#FBF7F2;
+    --radius:18px; --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+  }
+  html[data-theme="dark"]{
+    --accent:#F2A24A; --accent-2:#E68057;
+    --s-ext:#EE9F49; --s-serre:#73A85F; --s-cons:#6E4E2C; --s-off:#2C241D;
+    --fruit:#74B6FF; --leg:#86C56E; --champ:#B4A99C; --divers:#C29BD6; --oleo:#D8B36A;
+    --bg:#15100D; --surface:#201813; --surface-2:#2A211B; --ink:#F1E9E2; --muted:#A99C90; --hair:#352A22;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.45);
+    --toast-bg:#F1E9E2; --toast-fg:#201813;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html{ margin:0; padding:0; color-scheme:light; min-height:100%; background:var(--bg); }
-  body{
-    margin:0; padding:0; color:var(--ink); background:var(--bg); min-height:100dvh;
+  html{ margin:0; padding:0; min-height:100%; background:var(--bg); }
+  body{ margin:0; padding:0; color:var(--ink); background:var(--bg); min-height:100dvh;
     font-family:'Roboto',-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; -webkit-font-smoothing:antialiased;
-    padding-bottom:calc(86px + var(--safe-bot));
-    -webkit-user-select:none; user-select:none; overscroll-behavior:none;
-  }
+    padding-bottom:calc(86px + var(--safe-bot)); -webkit-user-select:none; user-select:none; overscroll-behavior:none;
+    transition:background .25s ease, color .25s ease;}
   body.modal-open{overflow:hidden;}
   button,input,select,textarea{font-family:inherit;}
-
-  .appbar{
-    position:sticky; top:0; z-index:35; background:var(--surface);
-    border-bottom:1px solid var(--hair); padding:calc(var(--safe-top) + 11px) 16px 12px;
-    box-shadow:0 1px 0 rgba(70,45,25,.02);
-  }
+  .appbar{ position:sticky; top:0; z-index:35; background:var(--surface); border-bottom:1px solid var(--hair);
+    padding:calc(var(--safe-top) + 11px) 16px 12px;}
   .appbar .inner{max-width:560px; margin:0 auto; text-align:center;}
   .brand{font-size:18px; font-weight:700; letter-spacing:-.3px; color:var(--ink);}
   .brand .kanji{color:var(--accent); font-size:22px; margin-right:8px; line-height:1;}
   .brand b{color:var(--accent); font-weight:700;}
-
   #app{max-width:560px; margin:0 auto; padding:14px 16px 16px; position:relative;}
   h1{font-size:25px; font-weight:700; letter-spacing:-.5px; margin:2px 0;}
-  h2{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:24px 0 11px;}
+  h2{font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin:22px 0 11px;}
   .sub{color:var(--muted); font-size:14px; margin:2px 0 0;}
-
   .card{ position:relative; background:var(--surface); border:1px solid var(--hair); border-radius:var(--radius);
-    overflow:hidden; box-shadow:var(--shadow); }
-
+    overflow:hidden; box-shadow:var(--shadow);}
   .monthbar{display:flex; align-items:center; justify-content:space-between; gap:8px;}
-  .monthbar .mname{font-size:15px; font-weight:700; letter-spacing:.2px; flex:1; text-align:center; color:var(--ink);}
+  .monthbar .mname{font-size:15px; font-weight:700; flex:1; text-align:center; color:var(--ink);}
   .nav{width:38px; height:38px; flex:0 0 auto; border:1px solid var(--hair); background:var(--surface-2);
-    border-radius:12px; color:var(--ink); font-size:18px; cursor:pointer;}
-  .nav:active{transform:scale(.95);}
-
+    border-radius:12px; color:var(--ink); font-size:18px; cursor:pointer; transition:transform .12s;}
+  .nav:active{transform:scale(.9);}
   .controls{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
-  .search{display:flex; align-items:center; gap:9px; padding:11px 14px; border-radius:14px;
-    background:var(--surface-2); border:1px solid var(--hair);}
+  .search{display:flex; align-items:center; gap:9px; padding:11px 14px; border-radius:14px; background:var(--surface-2); border:1px solid var(--hair);}
   .search input{flex:1; background:transparent; border:0; outline:0; color:var(--ink); font-size:15px;}
   .search input::placeholder{color:var(--muted);}
   .seg{display:flex; gap:5px; background:var(--surface-2); border:1px solid var(--hair); border-radius:14px; padding:4px;
     overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;}
   .seg::-webkit-scrollbar{display:none;}
   .seg button{flex:0 0 auto; white-space:nowrap; border:0; background:transparent; color:var(--muted); font-size:13px; font-weight:600;
-    padding:8px 13px; border-radius:10px; transition:.18s; cursor:pointer;}
-  .seg button.on{background:var(--surface); color:var(--accent); box-shadow:0 1px 2px rgba(70,45,25,.10);}
+    padding:8px 12px; border-radius:10px; transition:.18s; cursor:pointer; display:inline-flex; gap:5px; align-items:center;}
+  .seg button.on{background:var(--surface); color:var(--accent); box-shadow:0 1px 2px rgba(70,45,25,.12);}
+  .seg button .ci{font-size:14px;}
   .chip{align-self:flex-start; display:inline-flex; align-items:center; gap:7px; border:1px solid var(--hair);
-    background:var(--surface-2); color:var(--muted); font-size:13px; font-weight:600; padding:8px 13px; border-radius:999px; cursor:pointer;}
+    background:var(--surface-2); color:var(--muted); font-size:13px; font-weight:600; padding:8px 13px; border-radius:999px; cursor:pointer; transition:.18s;}
   .chip.on{color:var(--accent); border-color:rgba(224,137,47,.5); background:rgba(224,137,47,.12);}
-  .chip .box{width:14px; height:14px; border-radius:5px; border:1.5px solid var(--muted);}
+  .chip .box{width:14px; height:14px; border-radius:5px; border:1.5px solid var(--muted); transition:.18s;}
   .chip.on .box{border-color:var(--accent); background:var(--accent);}
-
-  .peak{margin-top:14px; padding:14px 14px 12px; background:#FCEFDC; border-color:#F4DBB4;}
+  .peak{margin-top:14px; padding:14px 14px 12px; background:rgba(244,162,74,.10); border-color:rgba(244,162,74,.32);}
   .peak .ttl{font-size:12px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); font-weight:700; margin-bottom:10px;}
   .peak .ttl b{color:var(--accent);}
   .peakrow{display:flex; gap:9px; overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:2px;}
   .peakcard{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:5px; width:74px;
-    padding:10px 6px; border-radius:14px; background:var(--surface); border:1px solid #F1D6AE; cursor:pointer;}
+    padding:10px 6px; border-radius:14px; background:var(--surface); border:1px solid rgba(224,137,47,.32); cursor:pointer; transition:transform .12s;}
+  .peakcard:active{transform:scale(.95);}
   .peakcard .pe{font-size:26px; line-height:1;}
   .peakcard .pn{font-size:11px; text-align:center; line-height:1.2; color:var(--ink);}
-
   .list{display:flex; flex-direction:column; gap:10px; margin-top:12px;}
-  .item{display:flex; align-items:center; gap:13px; padding:13px 14px; cursor:pointer;}
+  .item{display:flex; align-items:center; gap:13px; padding:13px 14px; cursor:pointer; transition:transform .12s;}
+  .item:active{transform:scale(.99);}
   .item .emoji{font-size:28px; line-height:1; width:34px; text-align:center;}
   .item .body{flex:1; min-width:0;}
   .item .name{font-size:16px; font-weight:600; letter-spacing:-.2px; color:var(--ink); display:flex; align-items:baseline; gap:7px; flex-wrap:wrap;}
   .alt{font-size:12px; font-weight:500; color:var(--muted); letter-spacing:0;}
   .tag{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; padding:2px 7px; border-radius:999px;}
-  .tag.fruit{color:var(--fruit); background:#E7F1FC;}
-  .tag.leg{color:var(--leg); background:#E9F2E3;}
-  .tag.champ{color:var(--champ); background:#F0EBE3;}
-  .tag.oleo{color:var(--oleo); background:#F7EDD7;}
-  .tag.divers{color:var(--divers); background:#F2E9F7;}
-  .item .when{font-size:13px; color:var(--muted); margin-top:3px;}
+  .tag.fruit{color:var(--fruit); background:rgba(46,125,209,.15);}
+  .tag.leg{color:var(--leg); background:rgba(78,139,61,.17);}
+  .tag.champ{color:var(--champ); background:rgba(126,115,104,.20);}
+  .tag.oleo{color:var(--oleo); background:rgba(181,133,47,.18);}
+  .tag.divers{color:var(--divers); background:rgba(155,111,176,.18);}
+  .badge{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; padding:2px 7px; border-radius:999px;}
+  .badge.soon{color:var(--fruit); background:rgba(46,125,209,.14);}
+  .badge.last{color:var(--accent-2); background:rgba(217,102,63,.16);}
+  .item .when{font-size:13px; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .tr{font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; display:inline-flex; gap:3px; align-items:center;}
+  .tr-fresh,.tr-storage{color:var(--leg); background:rgba(78,139,61,.15);}
+  .tr-near{color:var(--oleo); background:rgba(181,133,47,.17);}
+  .tr-far{color:var(--accent-2); background:rgba(217,102,63,.15);}
   .dots{display:flex; gap:3px; margin-top:7px;}
   .dot{width:100%; height:6px; border-radius:3px; background:var(--s-off);}
-  .dot.s1{background:var(--s-cons);}
-  .dot.s2{background:var(--s-ext);}
-  .dot.s3{background:var(--s-serre);}
-  .dot.now{box-shadow:0 0 0 1.5px var(--surface), 0 0 0 3px rgba(46,38,32,.34);}
-  .heart{flex:0 0 auto; width:34px; height:34px; border:0; background:transparent; color:var(--muted);
-    font-size:19px; cursor:pointer; border-radius:50%;}
+  .dot.s1{background:var(--s-cons);} .dot.s2{background:var(--s-ext);} .dot.s3{background:var(--s-serre);}
+  .dot.now{box-shadow:0 0 0 1.5px var(--surface), 0 0 0 3px rgba(127,99,80,.5);}
+  .heart{flex:0 0 auto; width:34px; height:34px; border:0; background:transparent; color:var(--muted); font-size:19px; cursor:pointer; border-radius:50%;}
   .heart.on{color:var(--accent-2);}
-
+  .heart.pop{animation:pop .35s ease;}
+  @keyframes pop{0%{transform:scale(1);}30%{transform:scale(1.4);}60%{transform:scale(.9);}100%{transform:scale(1);}}
   .empty{text-align:center; padding:34px 16px; color:var(--muted);}
   .empty .big{font-size:34px; margin-bottom:8px;}
-
   .calwrap{margin-top:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:var(--radius);}
-  table.cal{border-collapse:separate; border-spacing:0; width:100%; min-width:660px; font-size:12px;}
+  table.cal{border-collapse:separate; border-spacing:0; width:100%; min-width:680px; font-size:12px;}
   table.cal th,table.cal td{padding:0; text-align:center;}
   table.cal thead th{position:sticky; top:0; background:var(--surface); color:var(--muted); font-weight:600; padding:6px 2px 9px; font-size:11px;}
   table.cal thead th.col-now{color:var(--accent);}
@@ -135,40 +132,43 @@
     position:sticky; left:0; background:var(--surface); box-shadow:1px 0 0 var(--hair); color:var(--ink); cursor:pointer;}
   table.cal td.lbl:active{color:var(--accent);}
   table.cal td.lbl .em{margin-right:6px;}
-  .cell{height:18px; margin:2px; border-radius:5px; background:var(--s-off);}
-  .cell.s1{background:var(--s-cons);}
-  .cell.s2{background:var(--s-ext);}
-  .cell.s3{background:var(--s-serre);}
+  .cell{position:relative; height:18px; margin:2px; border-radius:5px; background:var(--s-off);}
+  .cell.s1{background:var(--s-cons);} .cell.s2{background:var(--s-ext);} .cell.s3{background:var(--s-serre);}
   .cell.col-now{outline:1.5px solid var(--accent); outline-offset:-1px;}
-
+  .cl{display:none;}
   .legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:14px; font-size:12.5px; color:var(--muted);}
   .legend .k{display:flex; align-items:center; gap:7px;}
-  .legend .sw{width:16px; height:10px; border-radius:3px; border:1px solid rgba(0,0,0,.04);}
-
+  .legend .sw{width:18px; height:11px; border-radius:3px; border:1px solid rgba(0,0,0,.05); display:flex; align-items:center; justify-content:center; font-size:8px; font-weight:700; color:rgba(0,0,0,.5);}
+  html[data-cb="1"] .cell .cl{display:flex; align-items:center; justify-content:center; height:100%; font-size:9px; font-weight:700; color:rgba(0,0,0,.6);}
+  html[data-cb="1"] .miniyear .md .cl{display:flex; align-items:center; justify-content:center; height:100%; font-size:10px; font-weight:700; color:rgba(0,0,0,.55);}
+  html[data-theme="dark"][data-cb="1"] .cell .cl, html[data-theme="dark"][data-cb="1"] .miniyear .md .cl{color:rgba(255,255,255,.7);}
+  html[data-cb="1"] .cell.s3, html[data-cb="1"] .miniyear .md.s3{background-image:repeating-linear-gradient(45deg, rgba(0,0,0,.18) 0 2px, transparent 2px 5px);}
+  html[data-cb="1"] .cell.s1, html[data-cb="1"] .miniyear .md.s1{background-image:radial-gradient(rgba(0,0,0,.20) 1px, transparent 1.4px); background-size:5px 5px;}
+  html[data-cb="1"] .legend .sw .cl{display:block;}
   .overlay{position:fixed; inset:0; z-index:60; display:none; flex-direction:column; background:var(--bg);}
-  .overlay.open{display:flex; animation:fade .2s ease;}
-  @keyframes fade{from{opacity:0;} to{opacity:1;}}
+  .overlay.open{display:flex; animation:overlayIn .28s cubic-bezier(.2,.8,.2,1);}
+  @keyframes overlayIn{from{opacity:0; transform:translateY(40px);} to{opacity:1; transform:none;}}
   .ohead{display:flex; align-items:center; gap:12px; padding:calc(var(--safe-top) + 12px) 16px 12px; border-bottom:1px solid var(--hair); background:var(--surface);}
-  .ohead .x{width:38px; height:38px; border:1px solid var(--hair); background:var(--surface-2); color:var(--ink);
-    border-radius:12px; font-size:17px; cursor:pointer; flex:0 0 auto;}
+  .ohead .x{width:38px; height:38px; border:1px solid var(--hair); background:var(--surface-2); color:var(--ink); border-radius:12px; font-size:17px; cursor:pointer; flex:0 0 auto;}
   .ohead .t{font-size:18px; font-weight:700; flex:1; display:flex; align-items:baseline; gap:8px; color:var(--ink);}
   .obody{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding:16px; max-width:560px; margin:0 auto; width:100%;}
+  .trans-note{font-size:12px; color:var(--muted); background:var(--surface-2); border:1px solid var(--hair); border-radius:12px; padding:9px 12px; margin-bottom:11px;}
   .field{padding:14px 15px; margin-bottom:11px;}
   .field .flabel{font-size:11px; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); font-weight:600; display:flex; align-items:center; gap:6px; margin-bottom:7px;}
   .field .fval{font-size:14.5px; line-height:1.5; color:var(--ink);}
   .field .fval b{font-weight:700;}
-  .field .fval + .fval{margin-top:9px;}
-  .field.danger{border-color:#F1C9B9; background:#FCEEE9;}
-  .field.danger .flabel{color:#C0512E;}
+  .field .fval + .fval{margin-top:7px;}
+  .field .src{font-size:11.5px; color:var(--muted); margin-top:9px; line-height:1.45;}
+  .field.danger{border-color:rgba(217,102,63,.45); background:rgba(217,102,63,.10);}
+  .field.danger .flabel{color:var(--accent-2);}
+  .trbig{font-size:14px; font-weight:700; padding:3px 10px; border-radius:999px; display:inline-flex; gap:5px; align-items:center;}
   .ok{color:var(--leg); font-weight:700;} .off{color:var(--muted);}
   .pill{font-size:11px; color:var(--muted); border:1px solid var(--hair); border-radius:999px; padding:3px 9px;}
   .miniyear{display:flex; gap:3px; margin-top:9px;}
   .miniyear .mc{flex:1; text-align:center; min-width:0;}
   .miniyear .ml{font-size:9px; color:var(--muted); margin-bottom:3px; letter-spacing:-.2px;}
-  .miniyear .md{height:22px; border-radius:5px; background:var(--s-off);}
-  .miniyear .md.s1{background:var(--s-cons);}
-  .miniyear .md.s2{background:var(--s-ext);}
-  .miniyear .md.s3{background:var(--s-serre);}
+  .miniyear .md{position:relative; height:22px; border-radius:5px; background:var(--s-off);}
+  .miniyear .md.s1{background:var(--s-cons);} .miniyear .md.s2{background:var(--s-ext);} .miniyear .md.s3{background:var(--s-serre);}
   .miniyear .mc.now .ml{color:var(--accent); font-weight:700;}
   .miniyear .mc.now .md{outline:1.5px solid var(--accent); outline-offset:-1px;}
   textarea.note-input{width:100%; min-height:84px; resize:vertical; background:var(--surface-2); border:1px solid var(--hair);
@@ -177,225 +177,342 @@
   .savehint{font-size:11px; color:var(--muted); margin-top:6px; min-height:14px;}
   .linkrow{display:flex; gap:9px; flex-wrap:wrap;}
   .linkbtn{flex:1 1 130px; text-align:center; text-decoration:none; color:var(--ink); border:1px solid var(--hair);
-    background:var(--surface-2); border-radius:12px; padding:11px 12px; font-size:13.5px; font-weight:600;}
+    background:var(--surface-2); border-radius:12px; padding:11px 12px; font-size:13.5px; font-weight:600; transition:transform .12s;}
   .linkbtn:active{transform:scale(.97);}
-
-  .note{font-size:12.5px; color:var(--muted); line-height:1.55; padding:0 3px; margin-top:10px;}
-
+  .setrow{display:flex; gap:8px; flex-wrap:wrap;}
+  .optbtn{flex:1 1 0; min-width:84px; border:1px solid var(--hair); background:var(--surface-2); color:var(--muted);
+    font-size:14px; font-weight:600; padding:11px 10px; border-radius:12px; cursor:pointer; transition:.16s;}
+  .optbtn.on{background:rgba(224,137,47,.13); color:var(--accent); border-color:rgba(224,137,47,.5);}
+  .togglerow{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  .switch{width:46px; height:28px; border-radius:999px; background:var(--surface-2); border:1px solid var(--hair); position:relative; cursor:pointer; flex:0 0 auto; transition:.2s;}
+  .switch .kn{position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:.2s;}
+  .switch.on{background:var(--accent); border-color:var(--accent);}
+  .switch.on .kn{left:21px;}
+  .note{font-size:12.5px; color:var(--muted); line-height:1.55; padding:0 2px; margin-top:10px;}
   .tabs{position:fixed; left:0; right:0; bottom:0; z-index:40; padding:8px 14px calc(8px + var(--safe-bot));
-    background:linear-gradient(180deg, rgba(251,247,242,0), rgba(251,247,242,.94) 45%);}
+    background:linear-gradient(180deg, transparent, var(--bg) 45%);}
   .tabs .inner{max-width:560px; margin:0 auto; display:flex; gap:8px; background:var(--surface);
-    border:1px solid var(--hair); border-radius:18px; padding:6px; box-shadow:0 6px 20px rgba(70,45,25,.10);}
+    border:1px solid var(--hair); border-radius:18px; padding:6px; box-shadow:0 6px 20px rgba(70,45,25,.12);}
   .tab{flex:1; border:0; background:transparent; color:var(--muted); border-radius:13px; padding:9px 4px;
     display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; font-weight:600; cursor:pointer; transition:.2s;}
   .tab .ic{font-size:19px; line-height:1;}
   .tab.on{color:var(--accent); background:rgba(224,137,47,.13);}
-
   @keyframes tabin{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
   .anim-in{animation:tabin .26s ease;}
-
   #toast{position:fixed; left:50%; bottom:calc(100px + var(--safe-bot)); transform:translateX(-50%) translateY(20px);
-    background:var(--ink); color:#FBF7F2; padding:11px 18px; border-radius:14px;
-    font-size:13.5px; opacity:0; pointer-events:none; transition:.25s; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.18);}
+    background:var(--toast-bg); color:var(--toast-fg); padding:11px 18px; border-radius:14px; font-size:13.5px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.2); max-width:90%; text-align:center;}
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
-
   @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
 </style>
 </head>
 <body>
-
 <header class="appbar"><div class="inner"><span class="brand"><span class="kanji">杏</span>edo<b>SeasonsTracker</b></span></div></header>
-
 <div id="app"></div>
-
 <div class="overlay" id="overlay">
   <div class="ohead">
     <button class="x" onclick="closeDetail()">✕</button>
     <div class="t" id="o-title"></div>
-    <button class="heart" id="o-heart" onclick="toggleFavFromDetail()">♡</button>
+    <button class="heart" id="o-heart" onclick="toggleFavFromDetail(this)">♡</button>
   </div>
   <div class="obody" id="o-body"></div>
 </div>
-
 <nav class="tabs"><div class="inner">
-  <button class="tab on" data-tab="now" onclick="switchTab('now')"><span class="ic">🌱</span>En ce moment</button>
-  <button class="tab" data-tab="calendrier" onclick="switchTab('calendrier')"><span class="ic">🗓️</span>Calendrier</button>
-  <button class="tab" data-tab="favoris" onclick="switchTab('favoris')"><span class="ic">♥</span>Favoris</button>
-  <button class="tab" data-tab="reglages" onclick="switchTab('reglages')"><span class="ic">⚙︎</span>Réglages</button>
+  <button class="tab on" data-tab="now" onclick="switchTab('now')"><span class="ic">🌱</span><span class="tl" data-t="tab_now"></span></button>
+  <button class="tab" data-tab="calendrier" onclick="switchTab('calendrier')"><span class="ic">🗓️</span><span class="tl" data-t="tab_cal"></span></button>
+  <button class="tab" data-tab="favoris" onclick="switchTab('favoris')"><span class="ic">♥</span><span class="tl" data-t="tab_fav"></span></button>
+  <button class="tab" data-tab="reglages" onclick="switchTab('reglages')"><span class="ic">⚙︎</span><span class="tl" data-t="tab_set"></span></button>
 </div></nav>
-
+<input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="onImportFile(event)">
 <div id="toast"></div>
-
 <script>
-/* =========================================================
-   edoSeasonsTracker v0.4 — saisonnalité Suisse
-   fruits, légumes, champignons, oléagineux & divers.
-   Saison (chaîne de 12 caractères, janv.→déc.) :
-     0 = hors saison
-     1 = conservation / disponible (stockage, forçage, culture continue)
-     2 = de saison, culture en extérieur (frais local)
-     3 = culture sous serre (Suisse, frais)
-   ========================================================= */
-const VERSION='0.4';
-const MONTHS=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
-const MONTHS_FULL=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-
-/* n=nom principal, alt=noms secondaires (option), t=type, e=emoji, s=saison(12),
-   c=conservation, o=origine recommandée, a=hors saison locale (ou '—'),
-   v=variétés (option), k=note (option), d=avertissement sécurité (option),
-   w=titre Wikipédia (option), wl=langue Wikipédia (option, 'fr' par défaut) */
+const VERSION='0.5';
+const LMONTHS={
+  fr:['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'],
+  de:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
+  it:['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic']
+};
+const LMONTHS_FULL={
+  fr:['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'],
+  de:['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'],
+  it:['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre']
+};
+const I18N={
+ fr:{tab_now:'En ce moment',tab_cal:'Calendrier',tab_fav:'Favoris',tab_set:'Réglages',
+  now_title:'En ce moment',month_current:'mois en cours',search_ph:'Rechercher un produit…',
+  cat_all:'Tout',cat_fruit:'Fruits',cat_veg:'Légumes',cat_mush:'Champignons',cat_oil:'Oléagineux',cat_misc:'Divers',
+  chip_local:'Frais local uniquement (culture en extérieur)',peak_a:'Au pic',peak_b:'en ce moment',
+  badge_soon:'Bientôt',badge_last:'Dernière chance',
+  st_ext:'De saison (culture en extérieur)',st_serre:'Culture sous serre',st_cons:'Disponible (conservation)',st_off:'Hors saison',
+  st_alpage:"Période d'alpage",st_year:"Disponible toute l'année",st_mush_year:"Cultivé toute l'année",all_year:"toute l'année",
+  cal_title:'Calendrier',cal_sub:'Vue annuelle · le mois en cours est encadré · touche un nom pour ouvrir sa fiche',
+  lg_ext:'De saison (culture en extérieur)',lg_serre:'Culture sous serre',lg_cons:'Conservation / disponible',lg_off:'Hors saison',
+  fav_title:'Favoris',fav_empty:"Aucun favori pour l'instant. Touche le cœur d'un produit pour l'ajouter ici.",
+  set_title:'Réglages',about_line:'Saisonnalité en Suisse — fruits, légumes, champignons, oléagineux et produits courants.',
+  f_season:'Saison en Suisse',f_safety:'Sécurité',f_cons:'Conservation',f_origin:'Origine recommandée pour le goût',
+  f_var:'Variétés & micro-saisons',f_note:'Bon à savoir',f_transport:'Empreinte transport',f_links:'Liens',f_comments:'Commentaires',
+  s_harvest:'Récolte (frais local)',s_avail:'Disponible',
+  src_note:"Indicatif · sources : calendriers saisonniers suisses (OFAG, gemüse.ch, Swissmilk, WWF, Bio Suisse). Les dates varient selon la météo, l'altitude et les variétés.",
+  off_prefix:'Hors saison locale :',
+  tr_fresh:'Local · frais',tr_storage:'Local · conservation',tr_near:'Importé · Europe proche',tr_far:'Importé · lointain / avion',
+  trs_local:'Local',trs_near:'Europe',trs_far:'Avion',tr_thismonth:'Ce mois-ci',
+  link_wiki:'Wikipédia',wiki_en:' (en anglais)',link_img:'Google Images',
+  comment_ph:'Ajoute une note personnelle…',comment_saved:'Enregistré sur cet appareil ✓',
+  toast_add:'Ajouté aux favoris ♥',toast_rem:'Retiré des favoris',empty_list:'Aucun produit ne correspond.',
+  set_lang:'Langue',set_theme:'Thème',th_light:'Clair',th_dark:'Sombre',th_auto:'Système',
+  set_display:'Affichage',cb_label:'Aide daltonien (motifs + lettres)',
+  set_data:'Données',export_btn:'Exporter mes données',import_btn:'Importer des données',
+  export_done:'Données exportées',import_done:'Données importées',import_err:'Fichier invalide',
+  data_note:'Favoris et commentaires sont enregistrés sur cet appareil. Exporte-les pour les sauvegarder ou les transférer.',
+  ai_notice:'Traduction réalisée par IA. Langue de référence : français.',
+  desc_fr_notice:'Descriptions détaillées affichées en français (langue de référence).',
+  cbl_ext:'E',cbl_serre:'S',cbl_cons:'C'},
+ de:{tab_now:'Jetzt',tab_cal:'Kalender',tab_fav:'Favoriten',tab_set:'Einstellungen',
+  now_title:'Jetzt Saison',month_current:'aktueller Monat',search_ph:'Produkt suchen…',
+  cat_all:'Alle',cat_fruit:'Früchte',cat_veg:'Gemüse',cat_mush:'Pilze',cat_oil:'Ölsaaten',cat_misc:'Diverses',
+  chip_local:'Nur frisch & lokal (Freiland)',peak_a:'Auf dem Höhepunkt',peak_b:'gerade jetzt',
+  badge_soon:'Bald',badge_last:'Letzte Chance',
+  st_ext:'Saison (Freiland)',st_serre:'Aus dem Gewächshaus',st_cons:'Verfügbar (Lager)',st_off:'Ausserhalb der Saison',
+  st_alpage:'Alpzeit',st_year:'Ganzjährig verfügbar',st_mush_year:'Ganzjährig kultiviert',all_year:'das ganze Jahr',
+  cal_title:'Kalender',cal_sub:'Jahresübersicht · aktueller Monat umrandet · Namen antippen für Details',
+  lg_ext:'Saison (Freiland)',lg_serre:'Gewächshaus',lg_cons:'Lager / verfügbar',lg_off:'Ausserhalb der Saison',
+  fav_title:'Favoriten',fav_empty:'Noch keine Favoriten. Tippe auf das Herz eines Produkts.',
+  set_title:'Einstellungen',about_line:'Saisonalität in der Schweiz — Früchte, Gemüse, Pilze, Ölsaaten und Grundprodukte.',
+  f_season:'Saison in der Schweiz',f_safety:'Sicherheit',f_cons:'Aufbewahrung',f_origin:'Empfohlene Herkunft (Geschmack)',
+  f_var:'Sorten & Mikrosaisons',f_note:'Gut zu wissen',f_transport:'Transport-Fussabdruck',f_links:'Links',f_comments:'Notizen',
+  s_harvest:'Ernte (frisch lokal)',s_avail:'Verfügbar',
+  src_note:'Richtwert · Quellen: Schweizer Saisonkalender (BLW, gemüse.ch, Swissmilk, WWF, Bio Suisse). Daten variieren je nach Wetter, Höhenlage und Sorte.',
+  off_prefix:'Ausserhalb der lokalen Saison:',
+  tr_fresh:'Lokal · frisch',tr_storage:'Lokal · Lager',tr_near:'Importiert · nahes Europa',tr_far:'Importiert · weit / Flug',
+  trs_local:'Lokal',trs_near:'Europa',trs_far:'Flug',tr_thismonth:'Diesen Monat',
+  link_wiki:'Wikipedia',wiki_en:' (auf Englisch)',link_img:'Google Bilder',
+  comment_ph:'Persönliche Notiz hinzufügen…',comment_saved:'Auf diesem Gerät gespeichert ✓',
+  toast_add:'Zu Favoriten hinzugefügt ♥',toast_rem:'Aus Favoriten entfernt',empty_list:'Kein passendes Produkt.',
+  set_lang:'Sprache',set_theme:'Erscheinungsbild',th_light:'Hell',th_dark:'Dunkel',th_auto:'System',
+  set_display:'Anzeige',cb_label:'Farbsehschwäche-Hilfe (Muster + Buchstaben)',
+  set_data:'Daten',export_btn:'Daten exportieren',import_btn:'Daten importieren',
+  export_done:'Daten exportiert',import_done:'Daten importiert',import_err:'Ungültige Datei',
+  data_note:'Favoriten und Notizen werden auf diesem Gerät gespeichert. Exportiere sie zur Sicherung oder Übertragung.',
+  ai_notice:'Übersetzung durch KI erstellt. Referenzsprache: Französisch.',
+  desc_fr_notice:'Detailbeschreibungen werden auf Französisch angezeigt (Referenzsprache).',
+  cbl_ext:'F',cbl_serre:'G',cbl_cons:'L'},
+ it:{tab_now:'Adesso',tab_cal:'Calendario',tab_fav:'Preferiti',tab_set:'Impostazioni',
+  now_title:'Di stagione ora',month_current:'mese corrente',search_ph:'Cerca un prodotto…',
+  cat_all:'Tutto',cat_fruit:'Frutta',cat_veg:'Verdura',cat_mush:'Funghi',cat_oil:'Semi oleosi',cat_misc:'Varie',
+  chip_local:'Solo fresco locale (pieno campo)',peak_a:'Al culmine',peak_b:'in questo momento',
+  badge_soon:'Presto',badge_last:'Ultima occasione',
+  st_ext:'Di stagione (pieno campo)',st_serre:'Da serra',st_cons:'Disponibile (conservazione)',st_off:'Fuori stagione',
+  st_alpage:"Periodo d'alpeggio",st_year:"Disponibile tutto l'anno",st_mush_year:"Coltivato tutto l'anno",all_year:"tutto l'anno",
+  cal_title:'Calendario',cal_sub:'Vista annuale · mese corrente evidenziato · tocca un nome per i dettagli',
+  lg_ext:'Di stagione (pieno campo)',lg_serre:'Serra',lg_cons:'Conservazione / disponibile',lg_off:'Fuori stagione',
+  fav_title:'Preferiti',fav_empty:'Ancora nessun preferito. Tocca il cuore di un prodotto.',
+  set_title:'Impostazioni',about_line:'Stagionalità in Svizzera — frutta, verdura, funghi, semi oleosi e prodotti base.',
+  f_season:'Stagione in Svizzera',f_safety:'Sicurezza',f_cons:'Conservazione',f_origin:'Origine consigliata (gusto)',
+  f_var:'Varietà & micro-stagioni',f_note:'Da sapere',f_transport:'Impronta di trasporto',f_links:'Link',f_comments:'Note',
+  s_harvest:'Raccolta (fresco locale)',s_avail:'Disponibile',
+  src_note:'Indicativo · fonti: calendari stagionali svizzeri (UFAG, gemüse.ch, Swissmilk, WWF, Bio Suisse). Le date variano con meteo, altitudine e varietà.',
+  off_prefix:'Fuori dalla stagione locale:',
+  tr_fresh:'Locale · fresco',tr_storage:'Locale · conservazione',tr_near:'Importato · Europa vicina',tr_far:'Importato · lontano / aereo',
+  trs_local:'Locale',trs_near:'Europa',trs_far:'Aereo',tr_thismonth:'Questo mese',
+  link_wiki:'Wikipedia',wiki_en:' (in inglese)',link_img:'Google Immagini',
+  comment_ph:'Aggiungi una nota personale…',comment_saved:'Salvato su questo dispositivo ✓',
+  toast_add:'Aggiunto ai preferiti ♥',toast_rem:'Rimosso dai preferiti',empty_list:'Nessun prodotto corrispondente.',
+  set_lang:'Lingua',set_theme:'Tema',th_light:'Chiaro',th_dark:'Scuro',th_auto:'Sistema',
+  set_display:'Visualizzazione',cb_label:'Aiuto daltonici (motivi + lettere)',
+  set_data:'Dati',export_btn:'Esporta i dati',import_btn:'Importa dati',
+  export_done:'Dati esportati',import_done:'Dati importati',import_err:'File non valido',
+  data_note:'Preferiti e note sono salvati su questo dispositivo. Esportali per backup o trasferimento.',
+  ai_notice:"Traduzione effettuata dall'IA. Lingua di riferimento: francese.",
+  desc_fr_notice:'Le descrizioni dettagliate sono in francese (lingua di riferimento).',
+  cbl_ext:'C',cbl_serre:'S',cbl_cons:'M'}
+};
+const NAMES={
+ 'Abricot':{de:'Aprikose',it:'Albicocca'},'Pomme':{de:'Apfel',it:'Mela'},'Poire':{de:'Birne',it:'Pera'},
+ 'Fraise':{de:'Erdbeere',it:'Fragola'},'Cerise':{de:'Kirsche',it:'Ciliegia'},'Framboise':{de:'Himbeere',it:'Lampone'},
+ 'Myrtille':{de:'Heidelbeere',it:'Mirtillo'},'Mûre':{de:'Brombeere',it:'Mora'},'Groseille':{de:'Johannisbeere',it:'Ribes'},
+ 'Cassis':{de:'Schwarze Johannisbeere',it:'Ribes nero'},'Raisin de table':{de:'Tafeltraube',it:'Uva da tavola'},
+ 'Prune':{de:'Pflaume',it:'Prugna'},'Pruneau':{de:'Zwetschge',it:'Susina'},'Pêche':{de:'Pfirsich',it:'Pesca'},
+ 'Nectarine':{de:'Nektarine',it:'Nettarina'},'Melon':{de:'Melone',it:'Melone'},'Coing':{de:'Quitte',it:'Mela cotogna'},
+ 'Rhubarbe':{de:'Rhabarber',it:'Rabarbaro'},'Châtaigne':{de:'Edelkastanie',it:'Castagna'},
+ 'Tomate':{de:'Tomate',it:'Pomodoro'},'Courgette':{de:'Zucchetti',it:'Zucchina'},'Carotte':{de:'Karotte',it:'Carota'},
+ 'Pomme de terre':{de:'Kartoffel',it:'Patata'},'Poireau':{de:'Lauch',it:'Porro'},
+ 'Chou blanc':{de:'Weisskohl',it:'Cavolo cappuccio'},'Chou rouge':{de:'Rotkohl',it:'Cavolo rosso'},
+ 'Chou frisé':{de:'Wirsing',it:'Verza'},'Chou de Bruxelles':{de:'Rosenkohl',it:'Cavolini di Bruxelles'},
+ 'Chou-fleur':{de:'Blumenkohl',it:'Cavolfiore'},'Chou-rave':{de:'Kohlrabi',it:'Cavolo rapa'},
+ 'Brocoli':{de:'Brokkoli',it:'Broccolo'},'Épinard':{de:'Spinat',it:'Spinaci'},'Laitue':{de:'Kopfsalat',it:'Lattuga'},
+ 'Mâche':{de:'Nüsslisalat',it:'Valerianella'},'Roquette':{de:'Rucola',it:'Rucola'},'Courge':{de:'Kürbis',it:'Zucca'},
+ 'Potiron':{de:'Gartenkürbis',it:'Zucca'},'Oignon':{de:'Zwiebel',it:'Cipolla'},'Ail':{de:'Knoblauch',it:'Aglio'},
+ 'Betterave rouge':{de:'Rande',it:'Barbabietola'},'Céleri-rave':{de:'Knollensellerie',it:'Sedano rapa'},
+ 'Fenouil':{de:'Fenchel',it:'Finocchio'},'Aubergine':{de:'Aubergine',it:'Melanzana'},'Poivron':{de:'Peperoni',it:'Peperone'},
+ 'Concombre':{de:'Gurke',it:'Cetriolo'},'Haricot':{de:'Bohne',it:'Fagiolino'},'Petits pois':{de:'Erbsen',it:'Piselli'},
+ 'Asperge':{de:'Spargel',it:'Asparago'},'Radis':{de:'Radieschen',it:'Ravanello'},'Endive':{de:'Chicorée',it:'Indivia belga'},
+ 'Maïs doux':{de:'Zuckermais',it:'Mais dolce'},'Panais':{de:'Pastinake',it:'Pastinaca'},
+ 'Topinambour':{de:'Topinambur',it:'Topinambur'},'Navet':{de:'Herbstrübe',it:'Rapa'},
+ 'Salsifis':{de:'Haferwurzel',it:'Barba di becco'},'Scorsonère':{de:'Schwarzwurzel',it:'Scorzonera'},
+ 'Cardon':{de:'Kardone',it:'Cardo'},'Bette à carde':{de:'Mangold',it:'Bietola da costa'},
+ 'Champignon de Paris':{de:'Champignon',it:'Champignon'},'Pleurote':{de:'Austernpilz',it:'Gelone'},
+ 'Shiitake':{de:'Shiitake',it:'Shiitake'},'Girolle':{de:'Eierschwamm',it:'Finferli'},'Cèpe':{de:'Steinpilz',it:'Porcino'},
+ 'Morille':{de:'Morchel',it:'Spugnola'},'Trompette de la mort':{de:'Totentrompete',it:'Trombetta dei morti'},
+ 'Pied-de-mouton':{de:'Semmelstoppelpilz',it:'Steccherino dorato'},
+ 'Noix':{de:'Baumnuss',it:'Noce'},'Noisette':{de:'Haselnuss',it:'Nocciola'},'Amande':{de:'Mandel',it:'Mandorla'},
+ 'Cacahuète':{de:'Erdnuss',it:'Arachide'},'Noix de cajou':{de:'Cashewnuss',it:'Anacardo'},
+ 'Pistache':{de:'Pistazie',it:'Pistacchio'},'Graine de tournesol':{de:'Sonnenblumenkern',it:'Seme di girasole'},
+ 'Graine de courge':{de:'Kürbiskern',it:'Seme di zucca'},'Graine de lin':{de:'Leinsamen',it:'Seme di lino'},
+ 'Graine de sésame':{de:'Sesam',it:'Seme di sesamo'},
+ 'Lait':{de:'Milch',it:'Latte'},'Œuf':{de:'Ei',it:'Uovo'},'Miel':{de:'Honig',it:'Miele'},"Huile d'olive":{de:'Olivenöl',it:"Olio d'oliva"}
+};
+const ALTS={
+ 'Chou frisé':{de:'Wirsing',it:'verza'},'Mâche':{de:'Nüsslisalat',it:'songino'},'Endive':{de:'Brüsseler',it:'indivia belga'},
+ 'Scorsonère':{de:'Schwarzwurzel',it:'scorzonera nera'},'Bette à carde':{de:'Mangold',it:'bietola da costa'},
+ 'Girolle':{de:'Eierschwamm',it:'finferli'},'Cèpe':{de:'Steinpilz',it:'porcino'},'Cacahuète':{de:'Erdnuss',it:'arachide'}
+};
 const DATA=[
- /* ---------- FRUITS ---------- */
- {n:'Abricot',t:'fruit',e:'🍑',s:'000000220000',c:'Mûrit à température ambiante ; au réfrigérateur (bac) une fois mûr, 2 à 3 jours. Se congèle dénoyauté.',o:'Suisse (Valais principalement), récolté à maturité, transport court.',a:'Hors saison locale (juillet–août), importé d\'Espagne, de France ou de l\'hémisphère sud, récolté avant maturité pour le transport.'},
- {n:'Pomme',t:'fruit',e:'🍎',s:'111100002211',c:'Endroit sombre et frais (0–5 °C, humidité élevée) ou bac du réfrigérateur, à l\'écart des autres fruits et légumes (dégage de l\'éthylène). La durée dépend de la variété.',o:'Suisse, disponible une grande partie de l\'année grâce au stockage.',a:'Hors stockage local, importée de l\'hémisphère sud (Nouvelle-Zélande, Chili).',v:'Gala (dès septembre), Golden, Braeburn et Boskoop (conservation d\'hiver), Maigold.'},
- {n:'Poire',t:'fruit',e:'🍐',s:'110000002211',c:'Mûrit à température ambiante, puis réfrigérateur. La chair cède près du pédoncule à maturité.',o:'Suisse à la récolte (automne) et en conservation jusqu\'en hiver.',a:'Hors saison locale, importée de l\'hémisphère sud.',v:'Williams (août–septembre), Conférence et Kaiser (automne, conservation).'},
- {n:'Fraise',t:'fruit',e:'🍓',s:'000022210000',c:'Réfrigérateur, non lavées, étalées ; à consommer sous 1 à 2 jours. Laver juste avant.',o:'Suisse, mai à juillet, récoltée à maturité.',a:'Hors saison locale, importée d\'Espagne et du Maroc (culture précoce sous abri, récolte avant maturité, transport long).'},
- {n:'Cerise',t:'fruit',e:'🍒',s:'000002200000',c:'Réfrigérateur, non équeutées, dans un récipient aéré.',o:'Suisse, juin–juillet.',a:'Hors saison locale, importée (Espagne, Turquie) ou de l\'hémisphère sud.'},
- {n:'Framboise',t:'fruit',e:'🫐',s:'000002222100',c:'Fragile : réfrigérateur, à plat, à consommer sous 1 à 2 jours. Se congèle telle quelle.',o:'Suisse, de l\'été au début de l\'automne (variétés remontantes).',a:'Hors saison locale, importée par transport rapide.'},
- {n:'Myrtille',t:'fruit',e:'🫐',s:'000000221000',c:'Réfrigérateur dans leur barquette, non lavées. Se congèlent telles quelles.',o:'Suisse (myrtille cultivée), juillet–août.',a:'Hors saison locale, importée (Espagne, Maroc, Amérique du Sud).'},
+ {n:'Abricot',t:'fruit',e:'🍑',s:'000000220000',tr:'loin',c:'Mûrit à température ambiante ; au réfrigérateur (bac) une fois mûr, 2 à 3 jours. Se congèle dénoyauté.',o:'Suisse (Valais principalement), récolté à maturité, transport court.',a:"Hors saison locale (juillet–août), importé d'Espagne, de France ou de l'hémisphère sud, récolté avant maturité pour le transport."},
+ {n:'Pomme',t:'fruit',e:'🍎',s:'111100002211',tr:'loin',c:"Endroit sombre et frais (0–5 °C, humidité élevée) ou bac du réfrigérateur, à l'écart des autres fruits et légumes (éthylène). La durée dépend de la variété.",o:"Suisse, disponible une grande partie de l'année grâce au stockage.",a:"Hors stockage local, importée de l'hémisphère sud (Nouvelle-Zélande, Chili).",v:"Gala (dès septembre), Golden, Braeburn et Boskoop (conservation d'hiver), Maigold."},
+ {n:'Poire',t:'fruit',e:'🍐',s:'110000002211',tr:'loin',c:'Mûrit à température ambiante, puis réfrigérateur. La chair cède près du pédoncule à maturité.',o:"Suisse à la récolte (automne) et en conservation jusqu'en hiver.",a:"Hors saison locale, importée de l'hémisphère sud.",v:'Williams (août–septembre), Conférence et Kaiser (automne, conservation).'},
+ {n:'Fraise',t:'fruit',e:'🍓',s:'000022210000',c:'Réfrigérateur, non lavées, étalées ; à consommer sous 1 à 2 jours. Laver juste avant.',o:'Suisse, mai à juillet, récoltée à maturité.',a:"Hors saison locale, importée d'Espagne et du Maroc (culture précoce sous abri, récolte avant maturité, transport long)."},
+ {n:'Cerise',t:'fruit',e:'🍒',s:'000002200000',c:'Réfrigérateur, non équeutées, dans un récipient aéré.',o:'Suisse, juin–juillet.',a:"Hors saison locale, importée (Espagne, Turquie) ou de l'hémisphère sud."},
+ {n:'Framboise',t:'fruit',e:'🫐',s:'000002222100',c:'Fragile : réfrigérateur, à plat, à consommer sous 1 à 2 jours. Se congèle telle quelle.',o:"Suisse, de l'été au début de l'automne (variétés remontantes).",a:'Hors saison locale, importée par transport rapide.'},
+ {n:'Myrtille',t:'fruit',e:'🫐',s:'000000221000',tr:'loin',c:'Réfrigérateur dans leur barquette, non lavées. Se congèlent telles quelles.',o:'Suisse (myrtille cultivée), juillet–août.',a:'Hors saison locale, importée (Espagne, Maroc, Amérique du Sud).'},
  {n:'Mûre',t:'fruit',e:'🫐',s:'000000022000',c:'Réfrigérateur, à plat, à consommer rapidement. Se congèle telle quelle.',o:'Suisse (cultivée ou cueillette), août–septembre.',a:'Hors saison locale, importée.',w:'Mûre (fruit)'},
  {n:'Groseille',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavées, sous quelques jours. Se congèle telle quelle.',o:'Suisse, juin à août.',a:'Hors saison locale, peu importée.',w:'Groseille à grappes'},
  {n:'Cassis',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavé, sous quelques jours. Se congèle tel quel.',o:'Suisse, juin à août.',a:'Hors saison locale, surtout transformé ou surgelé.',w:'Cassis (fruit)'},
- {n:'Raisin de table',t:'fruit',e:'🍇',s:'000000012210',c:'Réfrigérateur dans un sac perforé ; laver juste avant de consommer.',o:'Suisse (Valais, Tessin, Trois-Lacs) et Italie de saison, fin d\'été et automne.',a:'Hors saison locale, importé de l\'hémisphère sud en hiver et au printemps.',w:'Raisin'},
+ {n:'Raisin de table',t:'fruit',e:'🍇',s:'000000012210',tr:'loin',c:'Réfrigérateur dans un sac perforé ; laver juste avant de consommer.',o:"Suisse (Valais, Tessin, Trois-Lacs) et Italie de saison, fin d'été et automne.",a:"Hors saison locale, importé de l'hémisphère sud en hiver et au printemps.",w:'Raisin'},
  {n:'Prune',t:'fruit',e:'🍑',s:'000000122000',c:'Mûrit à température ambiante, puis réfrigérateur. La pruine (voile blanc) indique la fraîcheur.',o:'Suisse, juillet à septembre.',a:'Hors saison locale, importée.'},
  {n:'Pruneau',t:'fruit',e:'🍑',s:'000000022100',c:'Mûrit à température ambiante, puis réfrigérateur. Se congèle dénoyauté.',o:'Suisse, août–septembre (pruneau Fellenberg notamment).',a:'Hors saison locale, importé.'},
- {n:'Pêche',t:'fruit',e:'🍑',s:'000001221000',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:'Hors saison locale, importée de l\'hémisphère sud, récoltée ferme.',w:'Pêche (fruit)'},
- {n:'Nectarine',t:'fruit',e:'🍑',s:'000001221000',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:'Hors saison locale, importée de l\'hémisphère sud, récoltée ferme.',w:'Nectarine'},
- {n:'Melon',t:'fruit',e:'🍈',s:'000000221000',c:'Entier à température ambiante pour finir de mûrir ; entamé, au réfrigérateur, filmé.',o:'Suisse (production limitée), Italie et France de saison en été.',a:'Hors saison locale, importé de loin (Amérique centrale, Maroc).'},
- {n:'Coing',t:'fruit',e:'🍐',s:'000000000220',c:'Cave ou réfrigérateur, à l\'écart des autres fruits (parfum puissant) ; se garde plusieurs semaines.',o:'Suisse, octobre–novembre.',a:'—',k:'Ne se consomme pas cru : se cuisine (gelée, pâte de coing, rôti).'},
+ {n:'Pêche',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"Hors saison locale, importée de l'hémisphère sud, récoltée ferme.",w:'Pêche (fruit)'},
+ {n:'Nectarine',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"Hors saison locale, importée de l'hémisphère sud, récoltée ferme.",w:'Nectarine'},
+ {n:'Melon',t:'fruit',e:'🍈',s:'000000221000',tr:'loin',c:'Entier à température ambiante pour finir de mûrir ; entamé, au réfrigérateur, filmé.',o:'Suisse (production limitée), Italie et France de saison en été.',a:'Hors saison locale, importé de loin (Amérique centrale, Maroc).'},
+ {n:'Coing',t:'fruit',e:'🍐',s:'000000000220',c:"Cave ou réfrigérateur, à l'écart des autres fruits (parfum puissant) ; se garde plusieurs semaines.",o:'Suisse, octobre–novembre.',a:'—',k:'Ne se consomme pas cru : se cuisine (gelée, pâte de coing, rôti).'},
  {n:'Rhubarbe',t:'fruit',e:'🪴',s:'000222000000',c:'Réfrigérateur, tiges enveloppées dans un linge humide. Se congèle en tronçons.',o:'Suisse, avril à juin.',a:'Hors saison locale, importée.',k:'Botaniquement un légume, consommée comme un fruit. Seule la tige est comestible : les feuilles, riches en acide oxalique, sont toxiques.'},
- {n:'Châtaigne',t:'fruit',e:'🌰',s:'000000000220',c:'Réfrigérateur dans un sac perforé, ou endroit frais et aéré. Se congèle crue ou cuite.',o:'Suisse (Tessin, Valais), octobre–novembre.',a:'Hors saison locale, importée (Italie, Espagne, France).',k:'Les gros fruits sélectionnés sont appelés « marrons » en cuisine (à ne pas confondre avec le marron d\'Inde, non comestible).'},
-
- /* ---------- LÉGUMES ---------- */
- {n:'Tomate',t:'légume',e:'🍅',s:'000033222300',c:'À température ambiante, jamais au réfrigérateur (le froid altère texture et arômes). À l\'abri du soleil direct.',o:'Suisse, culture en extérieur de juillet à septembre ; sous serre en Suisse aux intersaisons.',a:'Hors saison locale, importée (Espagne, Pays-Bas) sous serre chauffée.'},
+ {n:'Châtaigne',t:'fruit',e:'🌰',s:'000000000220',c:'Réfrigérateur dans un sac perforé, ou endroit frais et aéré. Se congèle crue ou cuite.',o:'Suisse (Tessin, Valais), octobre–novembre.',a:'Hors saison locale, importée (Italie, Espagne, France).',k:"Les gros fruits sélectionnés sont appelés « marrons » en cuisine (à ne pas confondre avec le marron d'Inde, non comestible)."},
+ {n:'Tomate',t:'légume',e:'🍅',s:'000033222300',c:'À température ambiante, jamais au réfrigérateur (le froid altère texture et arômes). À l\u0027abri du soleil direct.',o:'Suisse, culture en extérieur de juillet à septembre ; sous serre en Suisse aux intersaisons.',a:'Hors saison locale, importée (Espagne, Pays-Bas) sous serre chauffée.'},
  {n:'Courgette',t:'légume',e:'🥒',s:'000032222300',c:'Bac à légumes du réfrigérateur, sous 5 à 7 jours. Se congèle cuite.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'Hors saison locale, importée.'},
- {n:'Carotte',t:'légume',e:'🥕',s:'111112222211',c:'Réfrigérateur sans les fanes (qui accélèrent la déshydratation), dans un sac. Conservation longue.',o:'Suisse, fraîche en été-automne et toute l\'année en conservation.',a:'—'},
- {n:'Pomme de terre',t:'légume',e:'🥔',s:'111112222211',c:'Endroit sombre, frais, sec et aéré ; jamais au réfrigérateur (le froid convertit l\'amidon en sucre). À l\'abri de la lumière (évite le verdissement).',o:'Suisse, récolte d\'été-automne, disponible toute l\'année en conservation.',a:'—',v:'Pommes de terre nouvelles (juin–juillet), variétés de garde (automne, conservation).'},
- {n:'Poireau',t:'légume',e:'🥬',s:'222200002222',c:'Réfrigérateur, debout ou enveloppé. Le poireau d\'hiver résiste au gel au champ.',o:'Suisse, automne et hiver.',a:'—'},
+ {n:'Carotte',t:'légume',e:'🥕',s:'111112222211',c:'Réfrigérateur sans les fanes (qui accélèrent la déshydratation), dans un sac. Conservation longue.',o:"Suisse, fraîche en été-automne et toute l'année en conservation.",a:'—'},
+ {n:'Pomme de terre',t:'légume',e:'🥔',s:'111112222211',c:"Endroit sombre, frais, sec et aéré ; jamais au réfrigérateur (le froid convertit l'amidon en sucre). À l'abri de la lumière (verdissement).",o:"Suisse, récolte d'été-automne, disponible toute l'année en conservation.",a:'—',v:"Pommes de terre nouvelles (juin–juillet), variétés de garde (automne, conservation)."},
+ {n:'Poireau',t:'légume',e:'🥬',s:'222200002222',c:"Réfrigérateur, debout ou enveloppé. Le poireau d'hiver résiste au gel au champ.",o:'Suisse, automne et hiver.',a:'—'},
  {n:'Chou blanc',t:'légume',e:'🥬',s:'111000002221',c:'Réfrigérateur ou cave fraîche ; un chou entier se garde plusieurs semaines.',o:'Suisse, automne et hiver (récolte puis stockage).',a:'—',w:'Chou'},
  {n:'Chou rouge',t:'légume',e:'🥬',s:'111000002221',c:'Réfrigérateur ou cave fraîche ; se garde plusieurs semaines.',o:'Suisse, automne et hiver (récolte puis stockage).',a:'—'},
- {n:'Chou frisé',alt:'chou de Milan',t:'légume',e:'🥬',s:'220000002222',c:'Réfrigérateur, sous quelques jours. Le gel au champ adoucit le goût.',o:'Suisse, fin d\'automne et hiver.',a:'—'},
- {n:'Chou de Bruxelles',t:'légume',e:'🥬',s:'110000001222',c:'Réfrigérateur, sur tige si possible, sous quelques jours.',o:'Suisse, fin d\'automne et hiver ; le gel adoucit le goût.',a:'—'},
- {n:'Chou-fleur',t:'légume',e:'🥦',s:'000022222220',c:'Réfrigérateur, sous 4 à 5 jours, tête vers le bas pour limiter l\'humidité.',o:'Suisse, mai à novembre.',a:'Hors saison locale, importé (France, Espagne, Italie).'},
+ {n:'Chou frisé',alt:'chou de Milan',t:'légume',e:'🥬',s:'220000002222',c:'Réfrigérateur, sous quelques jours. Le gel au champ adoucit le goût.',o:"Suisse, fin d'automne et hiver.",a:'—'},
+ {n:'Chou de Bruxelles',t:'légume',e:'🥬',s:'110000001222',c:'Réfrigérateur, sur tige si possible, sous quelques jours.',o:"Suisse, fin d'automne et hiver ; le gel adoucit le goût.",a:'—'},
+ {n:'Chou-fleur',t:'légume',e:'🥦',s:'000022222220',c:"Réfrigérateur, sous 4 à 5 jours, tête vers le bas pour limiter l'humidité.",o:'Suisse, mai à novembre.',a:'Hors saison locale, importé (France, Espagne, Italie).'},
  {n:'Chou-rave',t:'légume',e:'🥬',s:'000022222200',c:'Réfrigérateur sans les feuilles, dans un sac.',o:'Suisse, mai à octobre.',a:'—'},
- {n:'Brocoli',t:'légume',e:'🥦',s:'000002222200',c:'Réfrigérateur, dans un sac perforé, sous quelques jours. Se congèle blanchi.',o:'Suisse, juin à octobre.',a:'Hors saison locale, importé (Espagne, Italie), parfois par avion.'},
+ {n:'Brocoli',t:'légume',e:'🥦',s:'000002222200',tr:'loin',c:'Réfrigérateur, dans un sac perforé, sous quelques jours. Se congèle blanchi.',o:'Suisse, juin à octobre.',a:'Hors saison locale, importé (Espagne, Italie), parfois par avion.'},
  {n:'Épinard',t:'légume',e:'🥬',s:'000220002200',c:'Réfrigérateur, à consommer sous 1 à 2 jours. Se congèle blanchi.',o:'Suisse, printemps (avril–mai) et automne (septembre–octobre).',a:'Hors saison locale, importé.'},
- {n:'Laitue',t:'légume',e:'🥗',s:'003222222330',c:'Réfrigérateur, enveloppée dans un linge humide. Laver juste avant de consommer.',o:'Suisse, en extérieur d\'avril à octobre ; sous serre aux intersaisons.',a:'Hors saison locale, importée (transport long).'},
+ {n:'Laitue',t:'légume',e:'🥗',s:'003222222330',c:'Réfrigérateur, enveloppée dans un linge humide. Laver juste avant de consommer.',o:"Suisse, en extérieur d'avril à octobre ; sous serre aux intersaisons.",a:'Hors saison locale, importée (transport long).'},
  {n:'Mâche',alt:'doucette',t:'légume',e:'🌿',s:'222000000222',c:'Réfrigérateur, fragile, sous 1 à 2 jours.',o:'Suisse, salade de la saison froide (automne–hiver).',a:'—'},
  {n:'Roquette',t:'légume',e:'🌿',s:'000222222200',c:'Réfrigérateur, dans un sac, sous quelques jours. Laver juste avant.',o:'Suisse, avril à octobre.',a:'Hors saison locale, importée.'},
- {n:'Courge',t:'légume',e:'🎃',s:'110000001221',c:'Entière : endroit frais, sec et aéré (pas le réfrigérateur), conservation de plusieurs semaines à quelques mois.',o:'Suisse, récolte d\'automne, conservation jusqu\'en hiver.',a:'—',v:'Butternut, courge spaghetti, muscade, etc. (récolte automne, longue conservation).',w:'Courge'},
- {n:'Potiron',t:'légume',e:'🎃',s:'110000001221',c:'Entier : endroit frais, sec et aéré ; conservation de plusieurs semaines à quelques mois.',o:'Suisse, récolte d\'automne, conservation jusqu\'en hiver.',a:'—'},
- {n:'Oignon',t:'légume',e:'🧅',s:'111111122111',c:'Endroit sombre, sec et aéré, hors du réfrigérateur, à l\'écart des pommes de terre.',o:'Suisse, récolte fin d\'été, disponible toute l\'année en conservation.',a:'—'},
- {n:'Ail',t:'légume',e:'🧄',s:'111111221111',c:'Endroit sec, aéré et à l\'ombre ; jamais au réfrigérateur (germe et ramollit).',o:'Suisse, récolte d\'été, conservation longue.',a:'Hors saison locale, importé (Espagne, Chine), transport long.'},
+ {n:'Courge',t:'légume',e:'🎃',s:'110000001221',c:'Entière : endroit frais, sec et aéré (pas le réfrigérateur), conservation de plusieurs semaines à quelques mois.',o:"Suisse, récolte d'automne, conservation jusqu'en hiver.",a:'—',v:'Butternut, courge spaghetti, muscade, etc. (récolte automne, longue conservation).',w:'Courge'},
+ {n:'Potiron',t:'légume',e:'🎃',s:'110000001221',c:'Entier : endroit frais, sec et aéré ; conservation de plusieurs semaines à quelques mois.',o:"Suisse, récolte d'automne, conservation jusqu'en hiver.",a:'—'},
+ {n:'Oignon',t:'légume',e:'🧅',s:'111111122111',c:"Endroit sombre, sec et aéré, hors du réfrigérateur, à l'écart des pommes de terre.",o:"Suisse, récolte fin d'été, disponible toute l'année en conservation.",a:'—'},
+ {n:'Ail',t:'légume',e:'🧄',s:'111111221111',c:"Endroit sec, aéré et à l'ombre ; jamais au réfrigérateur (germe et ramollit).",o:"Suisse, récolte d'été, conservation longue.",a:'Hors saison locale, importé (Espagne, Chine), transport long.'},
  {n:'Betterave rouge',t:'légume',e:'🫜',s:'111112222211',c:'Réfrigérateur sans les fanes, ou cave. Conservation longue.',o:'Suisse, été-automne puis conservation.',a:'—',w:'Betterave potagère'},
  {n:'Céleri-rave',t:'légume',e:'🥬',s:'111000002221',c:'Réfrigérateur ou cave. Excellente conservation.',o:'Suisse, automne puis conservation hivernale.',a:'—',w:'Céleri-rave'},
  {n:'Fenouil',t:'légume',e:'🌿',s:'000002222200',c:'Réfrigérateur, dans un sac, sous une semaine.',o:'Suisse et Italie de saison, été-automne.',a:'Hors saison locale, importé.'},
  {n:'Aubergine',t:'légume',e:'🍆',s:'000003222300',c:'À température ambiante de préférence (sensible au froid), à consommer sous quelques jours.',o:'Suisse (serre) et Italie de saison, plein été.',a:'Hors saison locale, importée (Espagne, Pays-Bas) sous serre chauffée.'},
- {n:'Poivron',t:'légume',e:'🫑',s:'000003222200',c:'À conserver dans un endroit sombre et frais (cave) plutôt qu\'au réfrigérateur ; sous une semaine.',o:'Suisse (serre) et Italie de saison, été-automne.',a:'Hors saison locale, importé (Espagne, Pays-Bas) sous serre chauffée.'},
+ {n:'Poivron',t:'légume',e:'🫑',s:'000003222200',c:"À conserver dans un endroit sombre et frais (cave) plutôt qu'au réfrigérateur ; sous une semaine.",o:'Suisse (serre) et Italie de saison, été-automne.',a:'Hors saison locale, importé (Espagne, Pays-Bas) sous serre chauffée.'},
  {n:'Concombre',t:'légume',e:'🥒',s:'000332222300',c:'Réfrigérateur (pas la zone la plus froide), sous une semaine.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'Hors saison locale, importé sous serre chauffée.'},
- {n:'Haricot',t:'légume',e:'🫛',s:'000000222000',c:'Réfrigérateur, dans un sac, sous quelques jours. Se congèle blanchi.',o:'Suisse, été.',a:'Hors saison locale, importé (Kenya, Égypte, Maroc), souvent par avion.',w:'Haricot'},
- {n:'Petits pois',t:'légume',e:'🫛',s:'000002200000',c:'À écosser et consommer rapidement (le sucre se convertit vite en amidon). Se congèlent frais.',o:'Suisse, juin–juillet.',a:'Hors saison locale, surtout disponibles surgelés ou en conserve.',w:'Petit pois'},
- {n:'Asperge',t:'légume',e:'🌿',s:'000222000000',c:'Réfrigérateur, debout dans un peu d\'eau ou enveloppée dans un linge humide ; à consommer rapidement.',o:'Suisse, avril à juin.',a:'Hors saison locale, importée (Pérou, Mexique), transport long.',v:'Asperge verte (pousse à l\'air libre) et asperge blanche (buttée, à l\'abri de la lumière), avril–juin.'},
- {n:'Radis',t:'légume',e:'🌶️',s:'003222222330',c:'Réfrigérateur sans les fanes ; à consommer rapidement (ramollit en quelques jours).',o:'Suisse, en extérieur du printemps à l\'automne ; sous serre aux intersaisons.',a:'—',w:'Radis'},
- {n:'Endive',alt:'chicon',t:'légume',e:'🥬',s:'222000000222',c:'Réfrigérateur, à l\'abri de la lumière (qui développe l\'amertume), dans un sac opaque.',o:'Suisse et Belgique, automne et hiver.',a:'—',k:'Produite par forçage : les racines poussent à l\'obscurité (automne–hiver).',w:'Endive'},
- {n:'Maïs doux',t:'légume',e:'🌽',s:'000000022000',c:'Réfrigérateur dans ses feuilles, à consommer rapidement (le sucre se convertit en amidon).',o:'Suisse, fin d\'été (août–septembre).',a:'—',w:'Maïs doux'},
+ {n:'Haricot',t:'légume',e:'🫛',s:'000000222000',tr:'loin',c:'Réfrigérateur, dans un sac, sous quelques jours. Se congèle blanchi.',o:'Suisse, été.',a:'Hors saison locale, importé (Kenya, Égypte, Maroc), souvent par avion.',w:'Haricot'},
+ {n:'Petits pois',t:'légume',e:'🫛',s:'000002200000',c:'À écosser et consommer rapidement (le sucre se convertit vite en amidon). Se congèlent frais.',o:'Suisse, juin–juillet.',a:'Hors saison locale, surtout surgelés ou en conserve.',w:'Petit pois'},
+ {n:'Asperge',t:'légume',e:'🌿',s:'000222000000',tr:'loin',c:"Réfrigérateur, debout dans un peu d'eau ou enveloppée dans un linge humide ; à consommer rapidement.",o:'Suisse, avril à juin.',a:'Hors saison locale, importée (Pérou, Mexique), transport long.',v:"Asperge verte (pousse à l'air libre) et asperge blanche (buttée, à l'abri de la lumière), avril–juin."},
+ {n:'Radis',t:'légume',e:'🌶️',s:'003222222330',c:'Réfrigérateur sans les fanes ; à consommer rapidement (ramollit en quelques jours).',o:"Suisse, en extérieur du printemps à l'automne ; sous serre aux intersaisons.",a:'—',w:'Radis'},
+ {n:'Endive',alt:'chicon',t:'légume',e:'🥬',s:'222000000222',c:"Réfrigérateur, à l'abri de la lumière (qui développe l'amertume), dans un sac opaque.",o:'Suisse et Belgique, automne et hiver.',a:'—',k:"Produite par forçage : les racines poussent à l'obscurité (automne–hiver).",w:'Endive'},
+ {n:'Maïs doux',t:'légume',e:'🌽',s:'000000022000',c:'Réfrigérateur dans ses feuilles, à consommer rapidement (le sucre se convertit en amidon).',o:"Suisse, fin d'été (août–septembre).",a:'—',w:'Maïs doux'},
  {n:'Panais',t:'légume',e:'🥕',s:'220000000222',c:'Réfrigérateur ou cave. Le gel au champ accentue sa douceur.',o:'Suisse, automne et hiver.',a:'—'},
  {n:'Topinambour',t:'légume',e:'🥔',s:'222000000222',c:'Réfrigérateur dans un sac (se déshydrate vite) ou cave humide.',o:'Suisse, automne et hiver.',a:'—'},
  {n:'Navet',t:'légume',e:'🥬',s:'220000002222',c:'Réfrigérateur sans les fanes, ou cave.',o:'Suisse, automne et hiver.',a:'—'},
  {n:'Salsifis',t:'légume',e:'🥬',s:'222000000222',c:'Réfrigérateur ou cave, dans un linge ; se garde plusieurs semaines.',o:'Suisse, automne et hiver.',a:'—',w:'Salsifis'},
  {n:'Scorsonère',alt:'salsifis noir',t:'légume',e:'🥬',s:'222000000222',c:'Réfrigérateur ou cave, dans un linge ; se garde plusieurs semaines.',o:'Suisse, automne et hiver.',a:'—',w:'Scorsonère'},
- {n:'Cardon',t:'légume',e:'🌿',s:'200000000022',c:'Cave ou réfrigérateur, enveloppé ; se garde quelques semaines.',o:'Suisse (Genève, cardon épineux AOP), fin d\'automne et début d\'hiver.',a:'—',k:'Légume d\'hiver genevois traditionnel ; les côtes se consomment cuites.'},
+ {n:'Cardon',t:'légume',e:'🌿',s:'200000000022',c:'Cave ou réfrigérateur, enveloppé ; se garde quelques semaines.',o:"Suisse (Genève, cardon épineux AOP), fin d'automne et début d'hiver.",a:'—',k:"Légume d'hiver genevois traditionnel ; les côtes se consomment cuites."},
  {n:'Bette à carde',alt:'blette · côte de bette',t:'légume',e:'🥬',s:'000002222200',c:'Réfrigérateur, dans un sac, sous quelques jours.',o:'Suisse, été et automne.',a:'—',w:'Bette (plante)'},
-
- /* ---------- CHAMPIGNONS ---------- */
- {n:'Champignon de Paris',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier (jamais un plastique fermé). Ne pas laver : brosser.',o:'Suisse, cultivé toute l\'année.',a:'—',w:'Champignon de Paris'},
- {n:'Pleurote',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:'Suisse, cultivé toute l\'année.',a:'—',w:'Pleurote'},
- {n:'Shiitake',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:'Suisse (cultivé) et import ; disponible toute l\'année.',a:'—',w:'Shiitake'},
- {n:'Girolle',alt:'chanterelle',t:'champignon',e:'🍄',s:'000002222200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Ne pas tremper : brosser.',o:'Suisse (cueillette), été à automne ; aussi importée.',a:'Hors saison locale, importée ou séchée.',d:'Risque de confusion avec des espèces toxiques (clitocybe de l\'olivier, fausse girolle). Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Girolle'},
- {n:'Cèpe',alt:'bolet',t:'champignon',e:'🍄',s:'000000022200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Brosser, ne pas tremper.',o:'Suisse (cueillette), fin d\'été à automne ; aussi importé.',a:'Hors saison locale, importé ou séché.',d:'Risque de confusion avec le bolet de Satan (toxique) ou le bolet amer. Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Cèpe'},
+ {n:'Champignon de Paris',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier (jamais un plastique fermé). Ne pas laver : brosser.',o:"Suisse, cultivé toute l'année.",a:'—',w:'Champignon de Paris'},
+ {n:'Pleurote',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:"Suisse, cultivé toute l'année.",a:'—',w:'Pleurote'},
+ {n:'Shiitake',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:"Suisse (cultivé) et import ; disponible toute l'année.",a:'—',w:'Shiitake'},
+ {n:'Girolle',alt:'chanterelle',t:'champignon',e:'🍄',s:'000002222200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Ne pas tremper : brosser.',o:'Suisse (cueillette), été à automne ; aussi importée.',a:'Hors saison locale, importée ou séchée.',d:"Risque de confusion avec des espèces toxiques (clitocybe de l'olivier, fausse girolle). Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).",w:'Girolle'},
+ {n:'Cèpe',alt:'bolet',t:'champignon',e:'🍄',s:'000000022200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Brosser, ne pas tremper.',o:"Suisse (cueillette), fin d'été à automne ; aussi importé.",a:'Hors saison locale, importé ou séché.',d:'Risque de confusion avec le bolet de Satan (toxique) ou le bolet amer. Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Cèpe'},
  {n:'Morille',t:'champignon',e:'🍄',s:'000220000000',c:'À consommer rapidement, ou séchée. Réfrigérateur dans un sac en papier.',o:'Suisse (cueillette), printemps ; aussi importée (souvent séchée).',a:'Hors saison locale, importée.',d:'Toxique crue : à consommer uniquement bien cuite. Risque de confusion avec le gyromitre, potentiellement mortel. En cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Morille'},
  {n:'Trompette de la mort',t:'champignon',e:'🍄',s:'000000000222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours ; sèche très bien.',o:'Suisse (cueillette), automne.',a:'Hors saison locale, importée ou séchée.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Trompette de la mort'},
- {n:'Pied-de-mouton',t:'champignon',e:'🍄',s:'000000002222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours.',o:'Suisse (cueillette), automne et début d\'hiver.',a:'Hors saison locale, importé.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Pied-de-mouton'},
-
- /* ---------- OLÉAGINEUX ---------- */
- {n:'Noix',t:'oleagineux',e:'🌰',s:'111111112211',c:'En coque : endroit sec, frais et aéré, longue conservation. Cerneaux : récipient hermétique au réfrigérateur ou au congélateur (les corps gras rancissent).',o:'Suisse, récolte septembre–octobre ; disponible toute l\'année en coque.',a:'—',w:'Noix'},
- {n:'Noisette',t:'oleagineux',e:'🌰',s:'111111122111',c:'En coque : endroit sec et frais. Décortiquées : récipient hermétique, à l\'abri de la lumière.',o:'Suisse, récolte août–septembre.',a:'—',w:'Noisette'},
- {n:'Amande',t:'oleagineux',e:'🌰',s:'111111111111',c:'Récipient hermétique, au sec et à l\'abri de la lumière ; réfrigérateur pour une longue conservation.',o:'Importée (Espagne, Italie, États-Unis) ; récolte août–septembre dans les pays producteurs.',a:'—',w:'Amande'},
- {n:'Cacahuète',alt:'arachide',t:'oleagineux',e:'🥜',s:'111111111111',c:'Récipient hermétique, au sec ; à l\'abri de la lumière et de la chaleur.',o:'Importée (zones tropicales et subtropicales) ; disponible toute l\'année.',a:'—',w:'Arachide'},
- {n:'Noix de cajou',t:'oleagineux',e:'🥜',s:'111111111111',c:'Récipient hermétique, au sec ; réfrigérateur ou congélateur pour une longue conservation.',o:'Importée (Inde, Afrique de l\'Ouest, Vietnam).',a:'—',w:'Noix de cajou'},
- {n:'Pistache',t:'oleagineux',e:'🥜',s:'111111111111',c:'Récipient hermétique, au sec et à l\'abri de la lumière.',o:'Importée (Iran, Turquie, États-Unis).',a:'—',w:'Pistache'},
- {n:'Graine de tournesol',t:'oleagineux',e:'🌻',s:'111111112211',c:'Récipient hermétique, au sec et à l\'abri de la lumière ; réfrigérateur pour une longue conservation.',o:'Suisse (tournesol cultivé) et import ; récolte septembre–octobre.',a:'—',w:'Tournesol'},
- {n:'Graine de courge',t:'oleagineux',e:'🎃',s:'111111112221',c:'Récipient hermétique, au sec et à l\'abri de la lumière.',o:'Suisse, issues des courges récoltées à l\'automne.',a:'—',w:'Graine de courge'},
- {n:'Graine de lin',t:'oleagineux',e:'🌾',s:'111111111111',c:'Récipient hermétique, au sec ; moulues, à conserver au réfrigérateur (rancissent vite).',o:'Suisse (lin oléagineux) et import ; disponible toute l\'année.',a:'—',w:'Lin cultivé'},
- {n:'Graine de sésame',t:'oleagineux',e:'🌾',s:'111111111111',c:'Récipient hermétique, au sec et à l\'abri de la lumière ; réfrigérateur pour une longue conservation.',o:'Importée (zones chaudes) ; disponible toute l\'année.',a:'—',w:'Sésame'},
-
- /* ---------- DIVERS ---------- */
- {n:'Lait',t:'autre',e:'🥛',s:'111112222111',c:'Réfrigérateur à 4–5 °C ; respecter la date de consommation. Le lait UHT se conserve à température ambiante avant ouverture, puis au réfrigérateur.',o:'Suisse, production toute l\'année.',a:'—',k:'Disponible toute l\'année. Le lait d\'alpage provient des vaches à l\'estivage en montagne, de juin à septembre environ.',w:'Lait'},
- {n:'Œuf',t:'autre',e:'🥚',s:'111111111111',c:'Réfrigérateur ou endroit frais ; se conserve plusieurs semaines. Test : un œuf frais coule et reste couché au fond d\'un verre d\'eau ; s\'il flotte, il n\'est plus frais.',o:'Suisse, production toute l\'année.',a:'—',k:'Disponible toute l\'année. Le mode d\'élevage (plein air, biologique) et l\'origine figurent sur la coquille et l\'emballage.',w:'Œuf (aliment)'},
- {n:'Miel',t:'autre',e:'🍯',s:'111111111111',c:'Température ambiante, récipient fermé, à l\'abri de la lumière ; se conserve très longtemps. La cristallisation est naturelle et réversible (réchauffer doucement au bain-marie).',o:'Suisse, récolté du printemps à la fin de l\'été.',a:'—',k:'Ne pas donner de miel aux enfants de moins d\'un an (risque de botulisme infantile).',w:'Miel'},
- {n:'Huile d\'olive',t:'autre',e:'🫒',s:'111111111111',c:'À l\'abri de la lumière et de la chaleur, récipient bien fermé ; à consommer dans l\'année (l\'huile vierge s\'oxyde avec le temps).',o:'Importée (Italie, Espagne, Grèce…) ; l\'huile nouvelle est pressée après la récolte des olives, en fin d\'année.',a:'—',k:'La mention « vierge extra » désigne la catégorie supérieure (extraction mécanique à froid, faible acidité).',w:'Huile d\'olive'}
+ {n:'Pied-de-mouton',t:'champignon',e:'🍄',s:'000000002222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours.',o:"Suisse (cueillette), automne et début d'hiver.",a:'Hors saison locale, importé.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Pied-de-mouton'},
+ {n:'Noix',t:'oleagineux',e:'🌰',s:'111111112211',c:'En coque : endroit sec, frais et aéré, longue conservation. Cerneaux : récipient hermétique au réfrigérateur ou au congélateur (les corps gras rancissent).',o:"Suisse, récolte septembre–octobre ; disponible toute l'année en coque.",a:'—',w:'Noix'},
+ {n:'Noisette',t:'oleagineux',e:'🌰',s:'111111122111',c:"En coque : endroit sec et frais. Décortiquées : récipient hermétique, à l'abri de la lumière.",o:'Suisse, récolte août–septembre.',a:'—',w:'Noisette'},
+ {n:'Amande',t:'oleagineux',e:'🌰',s:'111111111111',imp:1,c:"Récipient hermétique, au sec et à l'abri de la lumière ; réfrigérateur pour une longue conservation.",o:'Importée (Espagne, Italie, États-Unis) ; récolte août–septembre dans les pays producteurs.',a:'—',w:'Amande'},
+ {n:'Cacahuète',alt:'arachide',t:'oleagineux',e:'🥜',s:'111111111111',imp:1,tr:'loin',c:"Récipient hermétique, au sec ; à l'abri de la lumière et de la chaleur.",o:"Importée (zones tropicales et subtropicales) ; disponible toute l'année.",a:'—',w:'Arachide'},
+ {n:'Noix de cajou',t:'oleagineux',e:'🥜',s:'111111111111',imp:1,tr:'loin',c:'Récipient hermétique, au sec ; réfrigérateur ou congélateur pour une longue conservation.',o:"Importée (Inde, Afrique de l'Ouest, Vietnam).",a:'—',w:'Noix de cajou'},
+ {n:'Pistache',t:'oleagineux',e:'🥜',s:'111111111111',imp:1,tr:'loin',c:"Récipient hermétique, au sec et à l'abri de la lumière.",o:'Importée (Iran, Turquie, États-Unis).',a:'—',w:'Pistache'},
+ {n:'Graine de tournesol',t:'oleagineux',e:'🌻',s:'111111112211',c:"Récipient hermétique, au sec et à l'abri de la lumière ; réfrigérateur pour une longue conservation.",o:'Suisse (tournesol cultivé) et import ; récolte septembre–octobre.',a:'—',w:'Tournesol'},
+ {n:'Graine de courge',t:'oleagineux',e:'🎃',s:'111111112221',c:"Récipient hermétique, au sec et à l'abri de la lumière.",o:"Suisse, issues des courges récoltées à l'automne.",a:'—',w:'Graine de courge'},
+ {n:'Graine de lin',t:'oleagineux',e:'🌾',s:'111111111111',c:'Récipient hermétique, au sec ; moulues, à conserver au réfrigérateur (rancissent vite).',o:"Suisse (lin oléagineux) et import ; disponible toute l'année.",a:'—',w:'Lin cultivé'},
+ {n:'Graine de sésame',t:'oleagineux',e:'🌾',s:'111111111111',imp:1,tr:'loin',c:"Récipient hermétique, au sec et à l'abri de la lumière ; réfrigérateur pour une longue conservation.",o:"Importée (zones chaudes) ; disponible toute l'année.",a:'—',w:'Sésame'},
+ {n:'Lait',t:'autre',e:'🥛',s:'111112222111',c:'Réfrigérateur à 4–5 °C ; respecter la date de consommation. Le lait UHT se conserve à température ambiante avant ouverture, puis au réfrigérateur.',o:"Suisse, production toute l'année.",a:'—',k:"Disponible toute l'année. Le lait d'alpage provient des vaches à l'estivage en montagne, de juin à septembre environ.",w:'Lait'},
+ {n:'Œuf',t:'autre',e:'🥚',s:'111111111111',c:"Réfrigérateur ou endroit frais ; se conserve plusieurs semaines. Test : un œuf frais coule et reste couché au fond d'un verre d'eau ; s'il flotte, il n'est plus frais.",o:"Suisse, production toute l'année.",a:'—',k:"Le mode d'élevage (plein air, biologique) et l'origine figurent sur la coquille et l'emballage.",w:'Œuf (aliment)'},
+ {n:'Miel',t:'autre',e:'🍯',s:'111111111111',c:"Température ambiante, récipient fermé, à l'abri de la lumière ; se conserve très longtemps. La cristallisation est naturelle et réversible (réchauffer doucement au bain-marie).",o:"Suisse, récolté du printemps à la fin de l'été.",a:'—',k:"Ne pas donner de miel aux enfants de moins d'un an (risque de botulisme infantile).",w:'Miel'},
+ {n:"Huile d'olive",t:'autre',e:'🫒',s:'111111111111',imp:1,c:"À l'abri de la lumière et de la chaleur, récipient bien fermé ; à consommer dans l'année (l'huile vierge s'oxyde avec le temps).",o:"Importée (Italie, Espagne, Grèce…) ; l'huile nouvelle est pressée après la récolte des olives, en fin d'année.",a:'—',k:"La mention « vierge extra » désigne la catégorie supérieure (extraction mécanique à froid, faible acidité).",w:"Huile d'olive"}
 ];
-
-/* ---- État ---- */
-let store={fav:[], comments:{}};
-let curTab='now';
-let curMonth=new Date().getMonth();
-let curType='tous';
-let localOnly=false;
-let query='';
-let detailIndex=null;
-let commentTimer=null;
-
-const CATS=[['tous','Tout'],['fruit','Fruits'],['légume','Légumes'],['champignon','Champignons'],['oleagineux','Oléagineux'],['autre','Divers']];
-
-function load(){ try{ const r=localStorage.getItem('edoseasonstracker'); if(r){ const d=JSON.parse(r); store.fav=d.fav||[]; store.comments=d.comments||{}; } }catch(e){} }
-function save(){ try{ localStorage.setItem('edoseasonstracker', JSON.stringify(store)); }catch(e){} }
+const CATS=[['tous','cat_all','🧺'],['fruit','cat_fruit','🍎'],['légume','cat_veg','🥬'],['champignon','cat_mush','🍄'],['oleagineux','cat_oil','🥜'],['autre','cat_misc','🥛']];
+let store={fav:[], comments:{}, settings:{theme:'auto',lang:'fr',cb:false}};
+let settings=store.settings;
+let curTab='now', curMonth=new Date().getMonth(), curType='tous', localOnly=false, query='', detailIndex=null, commentTimer=null;
+function load(){ try{ const r=localStorage.getItem('edoseasonstracker'); if(r){ const d=JSON.parse(r); store.fav=d.fav||[]; store.comments=d.comments||{}; store.settings=Object.assign({theme:'auto',lang:'fr',cb:false}, d.settings||{}); settings=store.settings; } }catch(e){} }
+function save(){ try{ localStorage.setItem('edoseasonstracker', JSON.stringify({fav:store.fav,comments:store.comments,settings})); }catch(e){} }
 load();
 
+function t(k){ return (I18N[settings.lang]&&I18N[settings.lang][k])||I18N.fr[k]||k; }
+function months(){ return LMONTHS[settings.lang]||LMONTHS.fr; }
+function monthsFull(){ return LMONTHS_FULL[settings.lang]||LMONTHS_FULL.fr; }
+function nm(it){ if(settings.lang==='fr') return it.n; return (NAMES[it.n]&&NAMES[it.n][settings.lang])||it.n; }
+function altOf(it){ if(!it.alt) return ''; if(settings.lang==='fr') return it.alt; return (ALTS[it.n]&&ALTS[it.n][settings.lang])||it.alt; }
+function altHtml(it){ const a=altOf(it); return a?'<span class="alt">'+a+'</span>':''; }
 function isFav(n){ return store.fav.indexOf(n)!==-1; }
 function toggleFav(n){ const i=store.fav.indexOf(n); if(i===-1){ store.fav.push(n);} else { store.fav.splice(i,1);} save(); }
 function commentOf(n){ return store.comments[n]||''; }
 function setComment(n,val){ if(val&&val.trim()){ store.comments[n]=val; } else { delete store.comments[n]; } save(); }
-
 function seasonOf(it,m){ return parseInt(it.s[m],10); }
-function tagClass(t){ return t==='fruit'?'fruit':t==='légume'?'leg':t==='champignon'?'champ':t==='oleagineux'?'oleo':'divers'; }
-function tagLabel(t){ return t==='fruit'?'fruit':t==='légume'?'légume':t==='champignon'?'champignon':t==='oleagineux'?'oléagineux':'divers'; }
 function statusText(it,m){
   const v=seasonOf(it,m);
-  if(it.t==='autre') return v>=2?'Période d\'alpage':'Disponible toute l\'année';
-  if(it.t==='champignon' && v===1) return 'Cultivé toute l\'année';
-  return v===2?'De saison (culture en extérieur)' : v===3?'Culture sous serre' : v===1?'Disponible (conservation)' : 'Hors saison';
+  if(it.t==='autre') return v>=2?t('st_alpage'):t('st_year');
+  if(it.t==='champignon' && v===1) return t('st_mush_year');
+  return v===2?t('st_ext') : v===3?t('st_serre') : v===1?t('st_cons') : t('st_off');
 }
-function peakMonths(it){
-  for(const lvl of ['2','3','1']){ const out=[]; for(let m=0;m<12;m++){ if(it.s[m]===lvl) out.push(m); } if(out.length) return out; }
-  return [];
+function rangeBy(it,pred){
+  const present=Array.from({length:12},(_,m)=>pred(it.s[m]));
+  if(present.every(x=>x)) return t('all_year');
+  if(!present.some(x=>x)) return '—';
+  const MF=monthsFull(); let starts=[];
+  for(let m=0;m<12;m++){ if(present[m]&&!present[(m+11)%12]) starts.push(m); }
+  return starts.map(s=>{ let e=s; while(present[(e+1)%12]) e=(e+1)%12; return s===e?MF[s]:MF[s]+'–'+MF[e]; }).join(', ');
 }
-function rangeText(it){
-  const peak=peakMonths(it); if(peak.length===12) return 'toute l\'année'; if(!peak.length) return '—';
-  const present=new Array(12).fill(false); peak.forEach(m=>present[m]=true);
-  let starts=[]; for(let m=0;m<12;m++){ if(present[m]&&!present[(m+11)%12]) starts.push(m); }
-  return starts.map(s=>{ let e=s; while(present[(e+1)%12]) e=(e+1)%12; return s===e?MONTHS_FULL[s]:MONTHS_FULL[s]+'–'+MONTHS_FULL[e]; }).join(', ');
-}
+function harvestRange(it){ return rangeBy(it,c=>c==='2'||c==='3'); }
+function availRange(it){ return rangeBy(it,c=>c!=='0'); }
+function seasonRangeRow(it){ const h=harvestRange(it); return h!=='—'?h:availRange(it); }
+function harvestLen(it){ let n=0; for(let m=0;m<12;m++) if(it.s[m]==='2') n++; return n; }
+function lvl2(it,m){ return it.s[m]==='2'; }
+function badgeOf(it,m){ const next=(m+1)%12; if(!lvl2(it,m)&&lvl2(it,next)) return 'soon'; if(lvl2(it,m)&&!lvl2(it,next)) return 'last'; return ''; }
+function transportClass(it,m){ const v=seasonOf(it,m); if(v>=2) return 'fresh'; if(v===1&&!it.imp) return 'storage'; return it.tr==='loin'?'far':'near'; }
+function trIcon(c){ return c==='fresh'?'🌱':c==='storage'?'🏠':c==='near'?'🚚':'✈️'; }
+function trShort(c){ return (c==='fresh'||c==='storage')?t('trs_local'):c==='near'?t('trs_near'):t('trs_far'); }
+function trLabel(c){ return c==='fresh'?t('tr_fresh'):c==='storage'?t('tr_storage'):c==='near'?t('tr_near'):t('tr_far'); }
 function wikiUrl(it){ const lang=it.wl||'fr'; const title=it.w||it.n; return 'https://'+lang+'.wikipedia.org/wiki/'+encodeURIComponent(title.replace(/ /g,'_')); }
 function imgUrl(it){ return 'https://www.google.com/search?tbm=isch&q='+encodeURIComponent(it.n); }
-function altHtml(it){ return it.alt?`<span class="alt">${it.alt}</span>`:''; }
-
-/* ---- Filtre / tri ---- */
+function haystack(it){ const x=NAMES[it.n]||{}; return [it.n,it.alt||'',x.de||'',x.it||''].join(' ').toLowerCase(); }
 function itemMatches(it){
   if(curType!=='tous' && it.t!==curType) return false;
   if(localOnly && seasonOf(it,curMonth)!==2) return false;
-  if(query && (it.n+' '+(it.alt||'')).toLowerCase().indexOf(query.toLowerCase())===-1) return false;
+  if(query && haystack(it).indexOf(query.toLowerCase())===-1) return false;
   return true;
 }
-function sortedFor(month){
-  return DATA.map((it,i)=>({it,i})).filter(o=>itemMatches(o.it))
-    .sort((a,b)=> seasonOf(b.it,month)-seasonOf(a.it,month) || a.it.n.localeCompare(b.it.n,'fr'));
-}
+function sortedFor(month){ return DATA.map((it,i)=>({it,i})).filter(o=>itemMatches(o.it)).sort((a,b)=> seasonOf(b.it,month)-seasonOf(a.it,month) || nm(a.it).localeCompare(nm(b.it),settings.lang)); }
 function availCount(){ return DATA.filter(it=>(curType==='tous'||it.t===curType)&&seasonOf(it,curMonth)>0).length; }
+function subText(){ const a=availCount(); const MF=monthsFull()[curMonth];
+  if(settings.lang==='de') return a+' Produkt'+(a>1?'e':'')+' im '+MF+' in der Schweiz verfügbar';
+  if(settings.lang==='it') return a+' prodott'+(a>1?'i':'o')+' disponibil'+(a>1?'i':'e')+' a '+MF+' in Svizzera';
+  return a+' produit'+(a>1?'s':'')+' disponible'+(a>1?'s':'')+' en '+MF+' en Suisse';
+}
+function tagClass(t0){ return t0==='fruit'?'fruit':t0==='légume'?'leg':t0==='champignon'?'champ':t0==='oleagineux'?'oleo':'divers'; }
+function catKey(t0){ return t0==='fruit'?'cat_fruit':t0==='légume'?'cat_veg':t0==='champignon'?'cat_mush':t0==='oleagineux'?'cat_oil':'cat_misc'; }
+function segHtml(){ return '<div class="seg">'+CATS.map(c=>'<button data-cat="'+c[0]+'" class="'+(curType===c[0]?'on':'')+'" onclick="setType(\''+c[0]+'\')"><span class="ci">'+c[2]+'</span>'+t(c[1])+'</button>').join('')+'</div>'; }
+function cbLetter(sv){ return sv==='2'?t('cbl_ext'):sv==='3'?t('cbl_serre'):sv==='1'?t('cbl_cons'):''; }
 
-function segHtml(){ return `<div class="seg">`+CATS.map(c=>`<button data-cat="${c[0]}" class="${curType===c[0]?'on':''}" onclick="setType('${c[0]}')">${c[1]}</button>`).join('')+`</div>`; }
-
-/* ---- Rendu ---- */
+function applyStaticI18n(){ document.querySelectorAll('[data-t]').forEach(el=>{ el.textContent=t(el.dataset.t); }); document.documentElement.lang=settings.lang; }
 function render(){
   const app=document.getElementById('app');
   if(curTab==='now') app.innerHTML=renderNow();
@@ -405,232 +522,155 @@ function render(){
   bindSearch();
   if(curTab==='calendrier') centerCalendar();
 }
-
-function listHtml(){
-  const list=sortedFor(curMonth);
-  return list.length ? list.map(o=>itemRow(o.it,o.i)).join('')
-    : `<div class="empty"><div class="big">🧺</div>Aucun produit ne correspond.</div>`;
-}
-function subText(){ const a=availCount(); return `${a} produit${a>1?'s':''} disponible${a>1?'s':''} en ${MONTHS_FULL[curMonth]} en Suisse`; }
-
+function listHtml(){ const list=sortedFor(curMonth); return list.length ? list.map(o=>itemRow(o.it,o.i)).join('') : '<div class="empty"><div class="big">🧺</div>'+t('empty_list')+'</div>'; }
 function renderNow(){
-  const now=new Date().getMonth();
-  const isNow=curMonth===now;
-  const mlabel=MONTHS_FULL[curMonth].charAt(0).toUpperCase()+MONTHS_FULL[curMonth].slice(1);
-
+  const now=new Date().getMonth(); const isNow=curMonth===now;
+  const mlabel=monthsFull()[curMonth]; const mcap=mlabel.charAt(0).toUpperCase()+mlabel.slice(1);
   let peakHtml='';
   if(isNow && !query && !localOnly){
-    const peak=DATA.map((it,i)=>({it,i})).filter(o=>seasonOf(o.it,now)===2 && o.it.t!=='autre')
-      .sort((a,b)=> peakMonths(a.it).length-peakMonths(b.it).length || a.it.n.localeCompare(b.it.n,'fr')).slice(0,6);
-    if(peak.length){
-      peakHtml=`<div class="card peak"><div class="ttl">Au pic <b>en ce moment</b></div>
-        <div class="peakrow">${peak.map(o=>`<div class="peakcard" onclick="openDetail(${o.i})"><div class="pe">${o.it.e}</div><div class="pn">${o.it.n}</div></div>`).join('')}</div></div>`;
-    }
+    const peak=DATA.map((it,i)=>({it,i})).filter(o=>seasonOf(o.it,now)===2 && o.it.t!=='autre').sort((a,b)=> harvestLen(a.it)-harvestLen(b.it) || nm(a.it).localeCompare(nm(b.it),settings.lang)).slice(0,6);
+    if(peak.length){ peakHtml='<div class="card peak"><div class="ttl">'+t('peak_a')+' <b>'+t('peak_b')+'</b></div><div class="peakrow">'+peak.map(o=>'<div class="peakcard" onclick="openDetail('+o.i+')"><div class="pe">'+o.it.e+'</div><div class="pn">'+nm(o.it)+'</div></div>').join('')+'</div></div>'; }
   }
-
-  return `<div class="screen">
-    <h1>En ce moment</h1>
-    <p class="sub" id="nowsub">${subText()}</p>
-    <div class="card" style="margin-top:14px; padding:10px 12px">
-      <div class="monthbar">
-        <button class="nav" onclick="changeMonth(-1)" aria-label="Mois précédent">‹</button>
-        <div class="mname">${mlabel}${isNow?' · mois en cours':''}</div>
-        <button class="nav" onclick="changeMonth(1)" aria-label="Mois suivant">›</button>
-      </div>
-    </div>
-    ${peakHtml}
-    <div class="controls">
-      <div class="search"><span>🔎</span><input id="q" placeholder="Rechercher un produit…" value="${query.replace(/"/g,'&quot;')}"></div>
-      ${segHtml()}
-      <button class="chip ${localOnly?'on':''}" onclick="toggleLocal()"><span class="box"></span>Frais local uniquement (culture en extérieur)</button>
-    </div>
-    <div class="list" id="list">${listHtml()}</div>
-  </div>`;
+  return '<div class="screen"><h1>'+t('now_title')+'</h1><p class="sub" id="nowsub">'+subText()+'</p>'+
+    '<div class="card" style="margin-top:14px; padding:10px 12px"><div class="monthbar"><button class="nav" onclick="changeMonth(-1)">‹</button><div class="mname">'+mcap+(isNow?' · '+t('month_current'):'')+'</div><button class="nav" onclick="changeMonth(1)">›</button></div></div>'+
+    peakHtml+
+    '<div class="controls"><div class="search"><span>🔎</span><input id="q" placeholder="'+t('search_ph')+'" value="'+query.replace(/"/g,'&quot;')+'"></div>'+segHtml()+
+    '<button class="chip '+(localOnly?'on':'')+'" onclick="toggleLocal()"><span class="box"></span>'+t('chip_local')+'</button></div>'+
+    '<div class="list" id="list">'+listHtml()+'</div></div>';
 }
-
 function itemRow(it,i){
-  const now=new Date().getMonth();
-  const v=seasonOf(it,curMonth);
-  const dots=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return `<span class="dot ${cls} ${m===now?'now':''}"></span>`; }).join('');
+  const now=new Date().getMonth(); const v=seasonOf(it,curMonth);
+  const dots=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<span class="dot '+cls+' '+(m===now?'now':'')+'"></span>'; }).join('');
   const dot=v===2?'●':v===3?'◆':v===1?'○':'·';
-  return `<div class="card item" onclick="openDetail(${i})">
-    <div class="emoji">${it.e}</div>
-    <div class="body">
-      <div class="name">${it.n}${altHtml(it)}<span class="tag ${tagClass(it.t)}">${tagLabel(it.t)}</span></div>
-      <div class="when">${dot} ${statusText(it,curMonth)} · ${rangeText(it)}</div>
-      <div class="dots">${dots}</div>
-    </div>
-    <button class="heart ${isFav(it.n)?'on':''}" onclick="event.stopPropagation(); quickFav('${escj(it.n)}', this)">${isFav(it.n)?'♥':'♡'}</button>
-  </div>`;
+  const bd=badgeOf(it,curMonth);
+  const badge = bd==='soon'?'<span class="badge soon">'+t('badge_soon')+'</span>':bd==='last'?'<span class="badge last">'+t('badge_last')+'</span>':'';
+  const trc=transportClass(it,curMonth);
+  const trChip='<span class="tr tr-'+trc+'">'+trIcon(trc)+' '+trShort(trc)+'</span>';
+  return '<div class="card item" onclick="openDetail('+i+')"><div class="emoji">'+it.e+'</div><div class="body">'+
+    '<div class="name">'+nm(it)+altHtml(it)+badge+'<span class="tag '+tagClass(it.t)+'">'+t(catKey(it.t))+'</span></div>'+
+    '<div class="when">'+dot+' '+statusText(it,curMonth)+' · '+seasonRangeRow(it)+' '+trChip+'</div>'+
+    '<div class="dots">'+dots+'</div></div>'+
+    '<button class="heart '+(isFav(it.n)?'on':'')+'" onclick="event.stopPropagation(); quickFav(\''+escj(it.n)+'\', this)">'+(isFav(it.n)?'♥':'♡')+'</button></div>';
 }
-
 function renderFavoris(){
   const favs=DATA.map((it,i)=>({it,i})).filter(o=>isFav(o.it.n));
-  let html=`<div class="screen"><h1>Favoris</h1>`;
-  if(!favs.length) return html+`<div class="empty"><div class="big">♡</div>Aucun favori pour l'instant.<br>Touche le cœur d'un produit pour l'ajouter ici.</div></div>`;
-  html+=`<p class="sub">${favs.length} produit${favs.length>1?'s':''} suivi${favs.length>1?'s':''}</p><div class="list">`;
-  html+=favs.sort((a,b)=>seasonOf(b.it,curMonth)-seasonOf(a.it,curMonth)||a.it.n.localeCompare(b.it.n,'fr')).map(o=>itemRow(o.it,o.i)).join('');
-  return html+`</div></div>`;
+  let html='<div class="screen"><h1>'+t('fav_title')+'</h1>';
+  if(!favs.length) return html+'<div class="empty"><div class="big">♡</div>'+t('fav_empty')+'</div></div>';
+  html+='<div class="list" style="margin-top:14px">';
+  html+=favs.sort((a,b)=>seasonOf(b.it,curMonth)-seasonOf(a.it,curMonth)||nm(a.it).localeCompare(nm(b.it),settings.lang)).map(o=>itemRow(o.it,o.i)).join('');
+  return html+'</div></div>';
 }
-
-function calRows(){ return DATA.filter(it=>curType==='tous'||it.t===curType).slice().sort((a,b)=>a.n.localeCompare(b.n,'fr')); }
+function calRows(){ return DATA.filter(it=>curType==='tous'||it.t===curType).slice().sort((a,b)=>nm(a).localeCompare(nm(b),settings.lang)); }
 function calBodyHtml(){
   const now=new Date().getMonth();
-  return calRows().map(it=>{
-    const idx=DATA.indexOf(it);
-    const cells=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return `<td><div class="cell ${cls} ${m===now?'col-now':''}"></div></td>`; }).join('');
-    return `<tr><td class="lbl" onclick="openDetail(${idx})"><span class="em">${it.e}</span>${it.n}</td>${cells}</tr>`;
-  }).join('');
+  return calRows().map(it=>{ const idx=DATA.indexOf(it);
+    const cells=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<td><div class="cell '+cls+' '+(m===now?'col-now':'')+'"><span class="cl">'+cbLetter(sv)+'</span></div></td>'; }).join('');
+    return '<tr><td class="lbl" onclick="openDetail('+idx+')"><span class="em">'+it.e+'</span>'+nm(it)+'</td>'+cells+'</tr>'; }).join('');
 }
 function renderCalendrier(){
   const now=new Date().getMonth();
-  const head=`<tr><th class="lbl"></th>`+MONTHS.map((m,i)=>`<th class="${i===now?'col-now':''}">${m}</th>`).join('')+`</tr>`;
-  return `<div class="screen">
-    <h1>Calendrier</h1>
-    <p class="sub">Vue annuelle · le mois en cours est encadré · touche un nom pour ouvrir sa fiche</p>
-    <div style="margin-top:14px">${segHtml()}</div>
-    <div class="card calwrap" style="padding:12px 12px 14px"><table class="cal"><thead>${head}</thead><tbody id="calbody">${calBodyHtml()}</tbody></table></div>
-    <div class="legend">
-      <span class="k"><span class="sw" style="background:var(--s-ext)"></span>De saison (culture en extérieur)</span>
-      <span class="k"><span class="sw" style="background:var(--s-serre)"></span>Culture sous serre</span>
-      <span class="k"><span class="sw" style="background:var(--s-cons)"></span>Conservation / disponible</span>
-      <span class="k"><span class="sw" style="background:var(--s-off)"></span>Hors saison</span>
-    </div>
-  </div>`;
+  const head='<tr><th class="lbl"></th>'+months().map((m,i)=>'<th class="'+(i===now?'col-now':'')+'">'+m+'</th>').join('')+'</tr>';
+  return '<div class="screen"><h1>'+t('cal_title')+'</h1><p class="sub">'+t('cal_sub')+'</p>'+
+    '<div style="margin-top:14px">'+segHtml()+'</div>'+
+    '<div class="card calwrap" style="padding:12px 12px 14px"><table class="cal"><thead>'+head+'</thead><tbody id="calbody">'+calBodyHtml()+'</tbody></table></div>'+
+    '<div class="legend">'+
+    '<span class="k"><span class="sw" style="background:var(--s-ext)"><span class="cl">'+t('cbl_ext')+'</span></span>'+t('lg_ext')+'</span>'+
+    '<span class="k"><span class="sw" style="background:var(--s-serre)"><span class="cl">'+t('cbl_serre')+'</span></span>'+t('lg_serre')+'</span>'+
+    '<span class="k"><span class="sw" style="background:var(--s-cons)"><span class="cl">'+t('cbl_cons')+'</span></span>'+t('lg_cons')+'</span>'+
+    '<span class="k"><span class="sw" style="background:var(--s-off)"></span>'+t('lg_off')+'</span></div></div>';
 }
-function centerCalendar(){
-  requestAnimationFrame(()=>{
-    const wrap=document.querySelector('.calwrap'); if(!wrap) return;
-    const col=wrap.querySelector('thead th.col-now'); if(!col) return;
-    const wr=wrap.getBoundingClientRect(), cr=col.getBoundingClientRect();
-    wrap.scrollLeft += (cr.left-wr.left) - wrap.clientWidth/2 + cr.width/2;
-  });
-}
-
+function centerCalendar(){ requestAnimationFrame(()=>{ const wrap=document.querySelector('.calwrap'); if(!wrap) return; const col=wrap.querySelector('thead th.col-now'); if(!col) return; const wr=wrap.getBoundingClientRect(), cr=col.getBoundingClientRect(); wrap.scrollLeft += (cr.left-wr.left) - wrap.clientWidth/2 + cr.width/2; }); }
 function renderReglages(){
-  return `<div class="screen">
-    <h1>Réglages</h1>
-    <h2>À propos</h2>
-    <div class="card" style="padding:15px">
-      <div style="font-weight:700; font-size:16px; color:var(--ink)"><span style="color:var(--accent); font-size:20px; margin-right:7px">杏</span>edo<b style="color:var(--accent)">SeasonsTracker</b> <span class="pill">v${VERSION}</span></div>
-      <p class="note">Saisonnalité en Suisse des <b>fruits, légumes, champignons, oléagineux</b> et de produits courants (<b>lait, œufs, miel, huile d'olive</b>) : période sur l'année, mode de conservation et origine recommandée. Application de consultation ; favoris et commentaires sont enregistrés sur cet appareil.</p>
-      <p class="note"><b>De saison, sous serre, conservation.</b> « De saison (culture en extérieur) » désigne la production locale de plein air ; « culture sous serre » la production suisse sous abri aux intersaisons ; « conservation » la disponibilité par stockage, forçage ou culture continue.</p>
-      <p class="note"><b>Variétés.</b> Les fruits et légumes proches sont listés séparément, leurs autres noms apparaissant en petit à côté du nom principal. Chaque fiche propose un lien vers Wikipédia et une recherche Google Images.</p>
-      <p class="note"><b>⚠️ Champignons.</b> Plusieurs champignons sauvages ressemblent à des espèces vénéneuses. Ne consommez que des champignons identifiés avec certitude ; en cas de doute, faites contrôler votre récolte par un contrôleur officiel des champignons (VAPKO). Certaines espèces, comme la morille, sont toxiques crues et doivent être bien cuites.</p>
-      <p class="note"><b>Saison.</b> Calendrier indicatif basé sur la récolte et la disponibilité locales (sources : calendriers saisonniers suisses). Les dates réelles varient selon la météo, l'altitude et les variétés.</p>
-    </div>
-    <div style="height:8px"></div>
-  </div>`;
+  const L=settings.lang, TH=settings.theme;
+  return '<div class="screen"><h1>'+t('set_title')+'</h1>'+
+    '<h2>'+t('set_lang')+'</h2><div class="card" style="padding:13px"><div class="setrow">'+
+    '<button class="optbtn '+(L==='fr'?'on':'')+'" onclick="setLang(\'fr\')">Français</button>'+
+    '<button class="optbtn '+(L==='de'?'on':'')+'" onclick="setLang(\'de\')">Deutsch</button>'+
+    '<button class="optbtn '+(L==='it'?'on':'')+'" onclick="setLang(\'it\')">Italiano</button></div>'+
+    '<p class="note">'+t('ai_notice')+'</p></div>'+
+    '<h2>'+t('set_theme')+'</h2><div class="card" style="padding:13px"><div class="setrow">'+
+    '<button class="optbtn '+(TH==='light'?'on':'')+'" onclick="setTheme(\'light\')">☀️ '+t('th_light')+'</button>'+
+    '<button class="optbtn '+(TH==='dark'?'on':'')+'" onclick="setTheme(\'dark\')">🌙 '+t('th_dark')+'</button>'+
+    '<button class="optbtn '+(TH==='auto'?'on':'')+'" onclick="setTheme(\'auto\')">🌗 '+t('th_auto')+'</button></div></div>'+
+    '<h2>'+t('set_display')+'</h2><div class="card" style="padding:15px"><div class="togglerow">'+
+    '<div style="font-size:14.5px; color:var(--ink); flex:1">'+t('cb_label')+'</div>'+
+    '<div class="switch '+(settings.cb?'on':'')+'" onclick="toggleCb()"><div class="kn"></div></div></div></div>'+
+    '<h2>'+t('set_data')+'</h2><div class="card" style="padding:13px"><div class="setrow">'+
+    '<button class="optbtn" onclick="exportData()">⬇️ '+t('export_btn')+'</button>'+
+    '<button class="optbtn" onclick="document.getElementById(\'importFile\').click()">⬆️ '+t('import_btn')+'</button></div>'+
+    '<p class="note">'+t('data_note')+'</p></div>'+
+    '<h2>'+t('set_title')+'</h2><div class="card" style="padding:15px">'+
+    '<div style="font-weight:700; font-size:16px; color:var(--ink)"><span style="color:var(--accent); font-size:20px; margin-right:7px">杏</span>edo<b style="color:var(--accent)">SeasonsTracker</b> <span class="pill">v'+VERSION+'</span></div>'+
+    '<p class="note">'+t('about_line')+'</p></div><div style="height:8px"></div></div>';
 }
-
-/* ---- Détail ---- */
 function openDetail(i){
-  detailIndex=i; const it=DATA[i];
-  document.getElementById('o-title').innerHTML=`<span style="font-size:24px">${it.e}</span> ${it.n}${altHtml(it)}`;
-  const heart=document.getElementById('o-heart');
-  heart.textContent=isFav(it.n)?'♥':'♡'; heart.classList.toggle('on',isFav(it.n));
-
-  const now=new Date().getMonth();
-  const year=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return `<div class="mc ${m===now?'now':''}"><div class="ml">${MONTHS[m]}</div><div class="md ${cls}"></div></div>`; }).join('');
-
-  const originBlock = it.t==='autre'
-    ? `<div class="fval"><span class="ok">✓</span> ${it.o}</div>`
-    : `<div class="fval"><span class="ok">✓</span> ${it.o}</div>${ (it.a&&it.a!=='—') ? `<div class="fval"><span class="off">○</span> Hors saison locale : ${it.a}</div>` : '' }`;
-
-  document.getElementById('o-body').innerHTML=`
-    <div class="card field">
-      <div class="flabel">🗓️ Saison en Suisse</div>
-      <div class="fval"><b>${statusText(it,now)}</b> · de saison : ${rangeText(it)}.</div>
-      <div class="miniyear">${year}</div>
-    </div>
-    ${it.d?`<div class="card field danger"><div class="flabel">⚠️ Sécurité</div><div class="fval">${it.d}</div></div>`:''}
-    <div class="card field">
-      <div class="flabel">❄️ Conservation</div>
-      <div class="fval">${it.c}</div>
-    </div>
-    <div class="card field">
-      <div class="flabel">🌍 Origine recommandée pour le goût</div>
-      ${originBlock}
-    </div>
-    ${it.v?`<div class="card field"><div class="flabel">🌾 Variétés &amp; micro-saisons</div><div class="fval">${it.v}</div></div>`:''}
-    ${it.k?`<div class="card field"><div class="flabel">ℹ️ Bon à savoir</div><div class="fval">${it.k}</div></div>`:''}
-    <div class="card field">
-      <div class="flabel">🔗 Liens</div>
-      <div class="linkrow">
-        <a class="linkbtn" href="${wikiUrl(it)}" target="_blank" rel="noopener">Wikipédia${it.wl==='en'?' (en anglais)':''} ↗</a>
-        <a class="linkbtn" href="${imgUrl(it)}" target="_blank" rel="noopener">Google Images ↗</a>
-      </div>
-    </div>
-    <div class="card field">
-      <div class="flabel">📝 Commentaires</div>
-      <textarea class="note-input" id="commentInput" placeholder="Ajoute une note personnelle…" oninput="onComment(${i}, this.value)">${escapeHtml(commentOf(it.n))}</textarea>
-      <div class="savehint" id="saveHint"></div>
-    </div>
-    <div style="height:24px"></div>`;
+  detailIndex=i; const it=DATA[i]; const now=new Date().getMonth();
+  document.getElementById('o-title').innerHTML='<span style="font-size:24px">'+it.e+'</span> '+nm(it)+altHtml(it);
+  const heart=document.getElementById('o-heart'); heart.textContent=isFav(it.n)?'♥':'♡'; heart.classList.toggle('on',isFav(it.n));
+  const year=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<div class="mc '+(m===now?'now':'')+'"><div class="ml">'+months()[m]+'</div><div class="md '+cls+'"><span class="cl">'+cbLetter(sv)+'</span></div></div>'; }).join('');
+  const trc=transportClass(it,now);
+  const originBlock = it.t==='autre' ? '<div class="fval"><span class="ok">✓</span> '+it.o+'</div>'
+    : '<div class="fval"><span class="ok">✓</span> '+it.o+'</div>'+((it.a&&it.a!=='—')?'<div class="fval"><span class="off">○</span> '+t('off_prefix')+' '+it.a+'</div>':'');
+  const frNotice = settings.lang!=='fr' ? '<div class="trans-note">'+t('desc_fr_notice')+'</div>' : '';
+  document.getElementById('o-body').innerHTML=
+    frNotice+
+    '<div class="card field"><div class="flabel">🗓️ '+t('f_season')+'</div>'+
+      '<div class="fval"><b>'+statusText(it,now)+'</b></div>'+
+      '<div class="fval">'+t('s_harvest')+' : '+harvestRange(it)+'</div>'+
+      '<div class="fval">'+t('s_avail')+' : '+availRange(it)+'</div>'+
+      '<div class="miniyear">'+year+'</div>'+
+      '<div class="src">'+t('src_note')+'</div></div>'+
+    '<div class="card field"><div class="flabel">🌍 '+t('f_transport')+'</div>'+
+      '<div class="fval"><span class="trbig tr-'+trc+'">'+trIcon(trc)+' '+trLabel(trc)+'</span> <span class="off">· '+t('tr_thismonth')+'</span></div></div>'+
+    (it.d?'<div class="card field danger"><div class="flabel">⚠️ '+t('f_safety')+'</div><div class="fval">'+it.d+'</div></div>':'')+
+    '<div class="card field"><div class="flabel">❄️ '+t('f_cons')+'</div><div class="fval">'+it.c+'</div></div>'+
+    '<div class="card field"><div class="flabel">🌱 '+t('f_origin')+'</div>'+originBlock+'</div>'+
+    (it.v?'<div class="card field"><div class="flabel">🌾 '+t('f_var')+'</div><div class="fval">'+it.v+'</div></div>':'')+
+    (it.k?'<div class="card field"><div class="flabel">ℹ️ '+t('f_note')+'</div><div class="fval">'+it.k+'</div></div>':'')+
+    '<div class="card field"><div class="flabel">🔗 '+t('f_links')+'</div><div class="linkrow">'+
+      '<a class="linkbtn" href="'+wikiUrl(it)+'" target="_blank" rel="noopener">'+t('link_wiki')+(it.wl==='en'?t('wiki_en'):'')+' ↗</a>'+
+      '<a class="linkbtn" href="'+imgUrl(it)+'" target="_blank" rel="noopener">'+t('link_img')+' ↗</a></div></div>'+
+    '<div class="card field"><div class="flabel">📝 '+t('f_comments')+'</div>'+
+      '<textarea class="note-input" id="commentInput" placeholder="'+t('comment_ph')+'" oninput="onComment('+i+', this.value)">'+escapeHtml(commentOf(it.n))+'</textarea>'+
+      '<div class="savehint" id="saveHint"></div></div>'+
+    '<div style="height:24px"></div>';
+  let dly=0; document.querySelectorAll('#o-body .field').forEach(f=>{ f.style.animationDelay=dly+'ms'; dly+=40; });
   document.getElementById('overlay').classList.add('open');
   document.body.classList.add('modal-open');
 }
 function closeDetail(){ document.getElementById('overlay').classList.remove('open'); document.body.classList.remove('modal-open'); detailIndex=null; if(curTab==='favoris') render(); }
-function toggleFavFromDetail(){ if(detailIndex==null) return; const it=DATA[detailIndex]; toggleFav(it.n);
-  const h=document.getElementById('o-heart'); h.textContent=isFav(it.n)?'♥':'♡'; h.classList.toggle('on',isFav(it.n));
-  toast(isFav(it.n)?'Ajouté aux favoris ♥':'Retiré des favoris'); }
-function onComment(i,val){ const it=DATA[i]; setComment(it.n,val);
-  const h=document.getElementById('saveHint'); if(h){ h.textContent='Enregistré sur cet appareil ✓'; clearTimeout(commentTimer); commentTimer=setTimeout(()=>{ if(h) h.textContent=''; },1600); } }
+function toggleFavFromDetail(btn){ if(detailIndex==null) return; const it=DATA[detailIndex]; toggleFav(it.n); btn.textContent=isFav(it.n)?'♥':'♡'; btn.classList.toggle('on',isFav(it.n)); btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); toast(isFav(it.n)?t('toast_add'):t('toast_rem')); }
+function onComment(i,val){ const it=DATA[i]; setComment(it.n,val); const h=document.getElementById('saveHint'); if(h){ h.textContent=t('comment_saved'); clearTimeout(commentTimer); commentTimer=setTimeout(()=>{ if(h) h.textContent=''; },1600); } }
+function fadeSwap(el, html, after){ if(!el) return; el.style.transition='opacity .15s ease, transform .15s ease'; el.style.opacity='0'; el.style.transform='translateY(5px)'; setTimeout(()=>{ el.innerHTML=html; el.style.opacity='1'; el.style.transform='none'; if(after) requestAnimationFrame(after); },140); }
+function quickFav(n,btn){ toggleFav(n); const on=isFav(n); btn.textContent=on?'♥':'♡'; btn.classList.toggle('on',on); btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); if(curTab==='favoris') render(); toast(on?t('toast_add'):t('toast_rem')); }
+function changeMonth(d){ curMonth=(curMonth+d+12)%12; render(); const l=document.getElementById('list'); if(l){ l.style.opacity='0'; l.style.transform='translateY(5px)'; requestAnimationFrame(()=>{ l.style.transition='opacity .22s ease, transform .22s ease'; l.style.opacity='1'; l.style.transform='none'; }); } }
+function setType(tp){ curType=tp; document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.cat===tp)); if(curTab==='now'){ const sub=document.getElementById('nowsub'); if(sub) sub.textContent=subText(); fadeSwap(document.getElementById('list'), listHtml()); } else if(curTab==='calendrier'){ fadeSwap(document.getElementById('calbody'), calBodyHtml(), centerCalendar); } }
+function toggleLocal(){ localOnly=!localOnly; const c=document.querySelector('.chip'); if(c) c.classList.toggle('on',localOnly); fadeSwap(document.getElementById('list'), listHtml()); }
+function bindSearch(){ const q=document.getElementById('q'); if(q){ q.addEventListener('input', e=>{ query=e.target.value; const el=document.getElementById('list'); if(el) el.innerHTML=listHtml(); }); } }
+function switchTab(tp){ curTab=tp; query=''; curMonth=new Date().getMonth(); document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tp)); render(); window.scrollTo(0,0); const child=document.querySelector('#app > .screen'); if(child){ child.classList.remove('anim-in'); void child.offsetWidth; child.classList.add('anim-in'); } }
 
-/* ---- Animations / actions ---- */
-function fadeSwap(el, html, after){
-  if(!el){ return; }
-  el.style.transition='opacity .15s ease, transform .15s ease';
-  el.style.opacity='0'; el.style.transform='translateY(5px)';
-  setTimeout(()=>{ el.innerHTML=html; el.style.opacity='1'; el.style.transform='none'; if(after) requestAnimationFrame(after); },140);
-}
-function quickFav(n,btn){ toggleFav(n); const on=isFav(n); btn.textContent=on?'♥':'♡'; btn.classList.toggle('on',on);
-  if(curTab==='favoris') render(); toast(on?'Ajouté aux favoris ♥':'Retiré des favoris'); }
-function changeMonth(d){ curMonth=(curMonth+d+12)%12; render(); }
-function setType(t){
-  curType=t;
-  document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.cat===t));
-  if(curTab==='now'){
-    const sub=document.getElementById('nowsub'); if(sub) sub.textContent=subText();
-    fadeSwap(document.getElementById('list'), listHtml());
-  } else if(curTab==='calendrier'){
-    fadeSwap(document.getElementById('calbody'), calBodyHtml(), centerCalendar);
-  }
-}
-function toggleLocal(){
-  localOnly=!localOnly;
-  const c=document.querySelector('.chip'); if(c) c.classList.toggle('on',localOnly);
-  fadeSwap(document.getElementById('list'), listHtml());
-}
+/* thème + langue + daltonien */
+function resolvedTheme(){ const th=settings.theme; return th==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):th; }
+function applyTheme(){ const m=resolvedTheme(); document.documentElement.setAttribute('data-theme',m); const meta=document.getElementById('themeColorMeta'); if(meta) meta.setAttribute('content', m==='dark'?'#15100D':'#FBF7F2'); }
+function applyCb(){ if(settings.cb) document.documentElement.setAttribute('data-cb','1'); else document.documentElement.removeAttribute('data-cb'); }
+function setLang(l){ settings.lang=l; save(); applyStaticI18n(); render(); }
+function setTheme(th){ settings.theme=th; save(); applyTheme(); render(); }
+function toggleCb(){ settings.cb=!settings.cb; save(); applyCb(); render(); }
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(settings.theme==='auto') applyTheme(); });
 
-function bindSearch(){
-  const q=document.getElementById('q');
-  if(q){ q.addEventListener('input', e=>{ query=e.target.value;
-    const listEl=document.getElementById('list'); if(listEl) listEl.innerHTML=listHtml();
-  }); }
-}
+/* export / import */
+function exportData(){ try{ const blob=new Blob([JSON.stringify({app:'edoSeasonsTracker',version:VERSION,fav:store.fav,comments:store.comments,settings:settings},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='edoseasonstracker-donnees.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); toast(t('export_done')); }catch(e){ toast(t('import_err')); } }
+function onImportFile(ev){ const f=ev.target.files&&ev.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=()=>{ try{ const d=JSON.parse(r.result); if(Array.isArray(d.fav)) store.fav=d.fav; if(d.comments&&typeof d.comments==='object') store.comments=d.comments; if(d.settings){ settings=Object.assign(settings,d.settings); store.settings=settings; } save(); applyTheme(); applyCb(); applyStaticI18n(); render(); toast(t('import_done')); }catch(e){ toast(t('import_err')); } ev.target.value=''; }; r.readAsText(f); }
 
-/* ---- Onglets : haut de page + mois réinitialisé ---- */
-function switchTab(t){
-  curTab=t; query=''; curMonth=new Date().getMonth();
-  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===t));
-  render();
-  window.scrollTo(0,0);
-  const child=document.querySelector('#app > .screen');
-  if(child){ child.classList.remove('anim-in'); void child.offsetWidth; child.classList.add('anim-in'); }
-}
-
-/* ---- Utils ---- */
+/* utils */
 function escj(s){ return String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 let toastTimer=null;
-function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),1900); }
+function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),1900); }
 
-if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
-  window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); });
-}
+if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){ window.addEventListener('load',()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
 
-render();
+applyTheme(); applyCb(); applyStaticI18n(); render();
 </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 /* edoSeasonsTracker — service worker (cache hors-ligne) */
-const CACHE = 'edoseasonstracker-v0.4';
+const CACHE = 'edoseasonstracker-v0.5';
 const ASSETS = [
   './',
   './index.html',
