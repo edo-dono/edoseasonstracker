@@ -105,9 +105,9 @@
   .tag.champ{color:var(--champ); background:rgba(126,115,104,.20);}
   .tag.oleo{color:var(--oleo); background:rgba(181,133,47,.18);}
   .tag.divers{color:var(--divers); background:rgba(155,111,176,.18);}
-  .badge{font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; padding:2px 7px; border-radius:999px;}
-  .badge.soon{color:var(--fruit); background:rgba(46,125,209,.14);}
-  .badge.last{color:var(--accent-2); background:rgba(217,102,63,.16);}
+  .badge{position:absolute; top:0; right:0; z-index:2; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.3px; padding:3px 10px 4px; border-radius:0 var(--radius) 0 10px;}
+  .badge.soon{background:var(--accent); color:#FFF8F0;}
+  .badge.last{background:var(--accent-2); color:#FFF8F0;}
   .item .when{font-size:13px; color:var(--muted); margin-top:3px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
   .tr{font-size:11px; font-weight:600; padding:1px 7px; border-radius:999px; display:inline-flex; gap:3px; align-items:center;}
   .tr-fresh,.tr-storage{color:var(--leg); background:rgba(78,139,61,.15);}
@@ -124,7 +124,7 @@
   .empty{text-align:center; padding:34px 16px; color:var(--muted);}
   .empty .big{font-size:34px; margin-bottom:8px;}
   .calwrap{margin-top:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:var(--radius);}
-  table.cal{border-collapse:separate; border-spacing:0; width:100%; min-width:680px; font-size:12px;}
+  table.cal{border-collapse:separate; border-spacing:0; width:100%; font-size:12px;}
   table.cal th,table.cal td{padding:0; text-align:center;}
   table.cal thead th{position:sticky; top:0; background:var(--surface); color:var(--muted); font-weight:600; padding:6px 2px 9px; font-size:11px;}
   table.cal thead th.col-now{color:var(--accent);}
@@ -159,6 +159,7 @@
   .field .fval b{font-weight:700;}
   .field .fval + .fval{margin-top:7px;}
   .field .src{font-size:11.5px; color:var(--muted); margin-top:9px; line-height:1.45;}
+  .field .src a{color:var(--muted);}
   .field.danger{border-color:rgba(217,102,63,.45); background:rgba(217,102,63,.10);}
   .field.danger .flabel{color:var(--accent-2);}
   .trbig{font-size:14px; font-weight:700; padding:3px 10px; border-radius:999px; display:inline-flex; gap:5px; align-items:center;}
@@ -183,6 +184,7 @@
   .optbtn{flex:1 1 0; min-width:84px; border:1px solid var(--hair); background:var(--surface-2); color:var(--muted);
     font-size:14px; font-weight:600; padding:11px 10px; border-radius:12px; cursor:pointer; transition:.16s;}
   .optbtn.on{background:rgba(224,137,47,.13); color:var(--accent); border-color:rgba(224,137,47,.5);}
+  .sel{background:var(--surface-2); border:1px solid var(--hair); color:var(--ink); border-radius:10px; padding:9px 10px; font-size:14px; outline:none;}
   .togglerow{display:flex; align-items:center; justify-content:space-between; gap:12px;}
   .switch{width:46px; height:28px; border-radius:999px; background:var(--surface-2); border:1px solid var(--hair); position:relative; cursor:pointer; flex:0 0 auto; transition:.2s;}
   .switch .kn{position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:.2s;}
@@ -226,7 +228,7 @@
 <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="onImportFile(event)">
 <div id="toast"></div>
 <script>
-const VERSION='0.5';
+const VERSION='0.6';
 const LMONTHS={
   fr:['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'],
   de:['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'],
@@ -245,15 +247,16 @@ const I18N={
   badge_soon:'Bientôt',badge_last:'Dernière chance',
   st_ext:'De saison (culture en extérieur)',st_serre:'Culture sous serre',st_cons:'Disponible (conservation)',st_off:'Hors saison',
   st_alpage:"Période d'alpage",st_year:"Disponible toute l'année",st_mush_year:"Cultivé toute l'année",all_year:"toute l'année",
-  cal_title:'Calendrier',cal_sub:'Vue annuelle · le mois en cours est encadré · touche un nom pour ouvrir sa fiche',
+  cal_title:'Calendrier',cal_sub:'Les 6 prochains mois, à partir du mois en cours · touche un nom pour ouvrir sa fiche',
   lg_ext:'De saison (culture en extérieur)',lg_serre:'Culture sous serre',lg_cons:'Conservation / disponible',lg_off:'Hors saison',
   fav_title:'Favoris',fav_empty:"Aucun favori pour l'instant. Touche le cœur d'un produit pour l'ajouter ici.",
   set_title:'Réglages',about_line:'Saisonnalité en Suisse — fruits, légumes, champignons, oléagineux et produits courants.',
   f_season:'Saison en Suisse',f_safety:'Sécurité',f_cons:'Conservation',f_origin:'Origine recommandée pour le goût',
-  f_var:'Variétés & micro-saisons',f_note:'Bon à savoir',f_transport:'Empreinte transport',f_links:'Liens',f_comments:'Commentaires',
+  f_var:'Variétés & micro-saisons',f_note:'Bon à savoir',f_transport:'Transport',f_links:'Liens',f_comments:'Commentaires',
   s_harvest:'Récolte (frais local)',s_avail:'Disponible',
   src_note:"Indicatif · sources : calendriers saisonniers suisses (OFAG, gemüse.ch, Swissmilk, WWF, Bio Suisse). Les dates varient selon la météo, l'altitude et les variétés.",
   off_prefix:'Hors saison locale :',
+  src_prefix:'Sources :',src_vary:"Les dates peuvent varier en fonction de la météo, l'altitude ou la variété.",lang_confirm:'',
   tr_fresh:'Local · frais',tr_storage:'Local · conservation',tr_near:'Importé · Europe proche',tr_far:'Importé · lointain / avion',
   trs_local:'Local',trs_near:'Europe',trs_far:'Avion',tr_thismonth:'Ce mois-ci',
   link_wiki:'Wikipédia',wiki_en:' (en anglais)',link_img:'Google Images',
@@ -274,15 +277,16 @@ const I18N={
   badge_soon:'Bald',badge_last:'Letzte Chance',
   st_ext:'Saison (Freiland)',st_serre:'Aus dem Gewächshaus',st_cons:'Verfügbar (Lager)',st_off:'Ausserhalb der Saison',
   st_alpage:'Alpzeit',st_year:'Ganzjährig verfügbar',st_mush_year:'Ganzjährig kultiviert',all_year:'das ganze Jahr',
-  cal_title:'Kalender',cal_sub:'Jahresübersicht · aktueller Monat umrandet · Namen antippen für Details',
+  cal_title:'Kalender',cal_sub:'Die nächsten 6 Monate, ab dem aktuellen Monat · Namen antippen für Details',
   lg_ext:'Saison (Freiland)',lg_serre:'Gewächshaus',lg_cons:'Lager / verfügbar',lg_off:'Ausserhalb der Saison',
   fav_title:'Favoriten',fav_empty:'Noch keine Favoriten. Tippe auf das Herz eines Produkts.',
   set_title:'Einstellungen',about_line:'Saisonalität in der Schweiz — Früchte, Gemüse, Pilze, Ölsaaten und Grundprodukte.',
   f_season:'Saison in der Schweiz',f_safety:'Sicherheit',f_cons:'Aufbewahrung',f_origin:'Empfohlene Herkunft (Geschmack)',
-  f_var:'Sorten & Mikrosaisons',f_note:'Gut zu wissen',f_transport:'Transport-Fussabdruck',f_links:'Links',f_comments:'Notizen',
+  f_var:'Sorten & Mikrosaisons',f_note:'Gut zu wissen',f_transport:'Transport',f_links:'Links',f_comments:'Notizen',
   s_harvest:'Ernte (frisch lokal)',s_avail:'Verfügbar',
   src_note:'Richtwert · Quellen: Schweizer Saisonkalender (BLW, gemüse.ch, Swissmilk, WWF, Bio Suisse). Daten variieren je nach Wetter, Höhenlage und Sorte.',
   off_prefix:'Ausserhalb der lokalen Saison:',
+  src_prefix:'Quellen:',src_vary:'Die Daten können je nach Wetter, Höhenlage oder Sorte variieren.',lang_confirm:'Hinweis: Diese Übersetzung wurde durch KI erstellt (Referenzsprache: Französisch). Daten können fehlerhaft sein oder Übersetzungsmängel aufweisen. Fortfahren?',
   tr_fresh:'Lokal · frisch',tr_storage:'Lokal · Lager',tr_near:'Importiert · nahes Europa',tr_far:'Importiert · weit / Flug',
   trs_local:'Lokal',trs_near:'Europa',trs_far:'Flug',tr_thismonth:'Diesen Monat',
   link_wiki:'Wikipedia',wiki_en:' (auf Englisch)',link_img:'Google Bilder',
@@ -303,15 +307,16 @@ const I18N={
   badge_soon:'Presto',badge_last:'Ultima occasione',
   st_ext:'Di stagione (pieno campo)',st_serre:'Da serra',st_cons:'Disponibile (conservazione)',st_off:'Fuori stagione',
   st_alpage:"Periodo d'alpeggio",st_year:"Disponibile tutto l'anno",st_mush_year:"Coltivato tutto l'anno",all_year:"tutto l'anno",
-  cal_title:'Calendario',cal_sub:'Vista annuale · mese corrente evidenziato · tocca un nome per i dettagli',
+  cal_title:'Calendario',cal_sub:'I prossimi 6 mesi, dal mese corrente · tocca un nome per i dettagli',
   lg_ext:'Di stagione (pieno campo)',lg_serre:'Serra',lg_cons:'Conservazione / disponibile',lg_off:'Fuori stagione',
   fav_title:'Preferiti',fav_empty:'Ancora nessun preferito. Tocca il cuore di un prodotto.',
   set_title:'Impostazioni',about_line:'Stagionalità in Svizzera — frutta, verdura, funghi, semi oleosi e prodotti base.',
   f_season:'Stagione in Svizzera',f_safety:'Sicurezza',f_cons:'Conservazione',f_origin:'Origine consigliata (gusto)',
-  f_var:'Varietà & micro-stagioni',f_note:'Da sapere',f_transport:'Impronta di trasporto',f_links:'Link',f_comments:'Note',
+  f_var:'Varietà & micro-stagioni',f_note:'Da sapere',f_transport:'Trasporto',f_links:'Link',f_comments:'Note',
   s_harvest:'Raccolta (fresco locale)',s_avail:'Disponibile',
   src_note:'Indicativo · fonti: calendari stagionali svizzeri (UFAG, gemüse.ch, Swissmilk, WWF, Bio Suisse). Le date variano con meteo, altitudine e varietà.',
   off_prefix:'Fuori dalla stagione locale:',
+  src_prefix:'Fonti:',src_vary:'Le date possono variare in base a meteo, altitudine o varietà.',lang_confirm:"Nota: questa traduzione è stata effettuata dall'IA (lingua di riferimento: francese). I dati possono essere errati o presentare difetti di traduzione. Continuare?",
   tr_fresh:'Locale · fresco',tr_storage:'Locale · conservazione',tr_near:'Importato · Europa vicina',tr_far:'Importato · lontano / aereo',
   trs_local:'Locale',trs_near:'Europa',trs_far:'Aereo',tr_thismonth:'Questo mese',
   link_wiki:'Wikipedia',wiki_en:' (in inglese)',link_img:'Google Immagini',
@@ -366,28 +371,110 @@ const ALTS={
  'Scorsonère':{de:'Schwarzwurzel',it:'scorzonera nera'},'Bette à carde':{de:'Mangold',it:'bietola da costa'},
  'Girolle':{de:'Eierschwamm',it:'finferli'},'Cèpe':{de:'Steinpilz',it:'porcino'},'Cacahuète':{de:'Erdnuss',it:'arachide'}
 };
+const TRD={
+ "Abricot":{de:{c:"Reift bei Raumtemperatur; reif im Kühlschrank (Fach) 2–3 Tage. Entsteint einfrierbar.",o:"Schweiz (vor allem Wallis), reif geerntet, kurze Transportwege.",a:"(Juli–August) aus Spanien, Frankreich oder der Südhalbkugel importiert, für den Transport unreif geerntet."},it:{c:"Matura a temperatura ambiente; una volta maturo in frigorifero (cassetto) 2–3 giorni. Si congela snocciolato.",o:"Svizzera (soprattutto Vallese), raccolta a maturità, trasporto breve.",a:"(luglio–agosto) importata da Spagna, Francia o emisfero sud, raccolta acerba per il trasporto."}},
+ "Pomme":{de:{c:"Dunkel und kühl (0–5 °C, hohe Luftfeuchte) oder im Kühlschrankfach, getrennt von anderem Obst/Gemüse (Ethylen). Haltbarkeit je nach Sorte.",o:"Schweiz, dank Lagerung einen Grossteil des Jahres verfügbar.",a:"ausserhalb der lokalen Lagerung von der Südhalbkugel importiert (Neuseeland, Chile).",v:"Gala (ab September), Golden, Braeburn und Boskoop (Winterlager), Maigold."},it:{c:"Luogo buio e fresco (0–5 °C, umidità elevata) o cassetto del frigorifero, lontano da altra frutta/verdura (etilene). Durata secondo la varietà.",o:"Svizzera, disponibile gran parte dell'anno grazie alla conservazione.",a:"fuori dalla conservazione locale importata dall'emisfero sud (Nuova Zelanda, Cile).",v:"Gala (da settembre), Golden, Braeburn e Boskoop (conservazione invernale), Maigold."}},
+ "Poire":{de:{c:"Reift bei Raumtemperatur, dann Kühlschrank. Reif, wenn das Fruchtfleisch beim Stiel nachgibt.",o:"Schweiz zur Ernte (Herbst) und im Lager bis in den Winter.",a:"von der Südhalbkugel importiert.",v:"Williams (August–September), Conférence und Kaiser (Herbst, Lager)."},it:{c:"Matura a temperatura ambiente, poi frigorifero. Matura quando la polpa cede vicino al picciolo.",o:"Svizzera alla raccolta (autunno) e in conservazione fino all'inverno.",a:"importata dall'emisfero sud.",v:"Williams (agosto–settembre), Conférence e Kaiser (autunno, conservazione)."}},
+ "Fraise":{de:{c:"Kühlschrank, ungewaschen, ausgebreitet; innert 1–2 Tagen verzehren. Erst vor dem Essen waschen.",o:"Schweiz, Mai bis Juli, reif geerntet.",a:"aus Spanien und Marokko importiert (Frühkultur unter Abdeckung, unreif geerntet, lange Transportwege)."},it:{c:"Frigorifero, non lavate, distese; consumare entro 1–2 giorni. Lavare solo prima di mangiare.",o:"Svizzera, da maggio a luglio, raccolta a maturità.",a:"importata da Spagna e Marocco (coltura precoce sotto copertura, raccolta acerba, lungo trasporto)."}},
+ "Cerise":{de:{c:"Kühlschrank, mit Stiel, in einem luftigen Behälter.",o:"Schweiz, Juni–Juli.",a:"importiert (Spanien, Türkei) oder von der Südhalbkugel."},it:{c:"Frigorifero, con il picciolo, in un contenitore areato.",o:"Svizzera, giugno–luglio.",a:"importata (Spagna, Turchia) o dall'emisfero sud."}},
+ "Framboise":{de:{c:"Empfindlich: Kühlschrank, flach, innert 1–2 Tagen verzehren. Einfrierbar.",o:"Schweiz, vom Sommer bis in den Frühherbst (remontierende Sorten).",a:"per Schnelltransport importiert."},it:{c:"Delicato: frigorifero, in piano, consumare entro 1–2 giorni. Si congela.",o:"Svizzera, dall'estate all'inizio dell'autunno (varietà rifiorenti).",a:"importato con trasporto rapido."}},
+ "Myrtille":{de:{c:"Kühlschrank in der Schale, ungewaschen. Einfrierbar.",o:"Schweiz (Kulturheidelbeere), Juli–August.",a:"importiert (Spanien, Marokko, Südamerika)."},it:{c:"Frigorifero nella vaschetta, non lavato. Si congela.",o:"Svizzera (mirtillo coltivato), luglio–agosto.",a:"importato (Spagna, Marocco, Sud America)."}},
+ "Mûre":{de:{c:"Kühlschrank, flach, rasch verzehren. Einfrierbar.",o:"Schweiz (Kultur oder Sammlung), August–September.",a:"importiert."},it:{c:"Frigorifero, in piano, consumare rapidamente. Si congela.",o:"Svizzera (coltivata o raccolta), agosto–settembre.",a:"importata."}},
+ "Groseille":{de:{c:"Kühlschrank, ungewaschen, einige Tage. Einfrierbar.",o:"Schweiz, Juni bis August.",a:"wenig importiert."},it:{c:"Frigorifero, non lavato, pochi giorni. Si congela.",o:"Svizzera, da giugno ad agosto.",a:"poco importato."}},
+ "Cassis":{de:{c:"Kühlschrank, ungewaschen, einige Tage. Einfrierbar.",o:"Schweiz, Juni bis August.",a:"vor allem verarbeitet oder tiefgekühlt."},it:{c:"Frigorifero, non lavato, pochi giorni. Si congela.",o:"Svizzera, da giugno ad agosto.",a:"soprattutto trasformato o surgelato."}},
+ "Raisin de table":{de:{c:"Kühlschrank im perforierten Beutel; erst vor dem Verzehr waschen.",o:"Schweiz (Wallis, Tessin, Drei-Seen) und Italien in der Saison, Spätsommer und Herbst.",a:"im Winter und Frühling von der Südhalbkugel importiert."},it:{c:"Frigorifero nel sacchetto forato; lavare solo prima di consumare.",o:"Svizzera (Vallese, Ticino, Tre Laghi) e Italia di stagione, fine estate e autunno.",a:"importata dall'emisfero sud in inverno e primavera."}},
+ "Prune":{de:{c:"Reift bei Raumtemperatur, dann Kühlschrank. Der Reif (weisser Schleier) zeigt Frische.",o:"Schweiz, Juli bis September.",a:"importiert."},it:{c:"Matura a temperatura ambiente, poi frigorifero. La pruina (velo bianco) indica freschezza.",o:"Svizzera, da luglio a settembre.",a:"importata."}},
+ "Pruneau":{de:{c:"Reift bei Raumtemperatur, dann Kühlschrank. Entsteint einfrierbar.",o:"Schweiz, August–September (insbesondere Fellenberg-Zwetschge).",a:"importiert."},it:{c:"Matura a temperatura ambiente, poi frigorifero. Si congela snocciolata.",o:"Svizzera, agosto–settembre (in particolare susina Fellenberg).",a:"importata."}},
+ "Pêche":{de:{c:"Reift bei Raumtemperatur; reif im Kühlschrank. Empfindlich gegen längere Kälte.",o:"Schweiz (Wallis, Tessin) im Sommer; sonst Italien oder Frankreich in der Saison.",a:"von der Südhalbkugel importiert, fest geerntet."},it:{c:"Matura a temperatura ambiente; una volta matura in frigorifero. Sensibile al freddo prolungato.",o:"Svizzera (Vallese, Ticino) in estate; altrimenti Italia o Francia di stagione.",a:"importata dall'emisfero sud, raccolta soda."}},
+ "Nectarine":{de:{c:"Reift bei Raumtemperatur; reif im Kühlschrank. Empfindlich gegen längere Kälte.",o:"Schweiz (Wallis, Tessin) im Sommer; sonst Italien oder Frankreich in der Saison.",a:"von der Südhalbkugel importiert, fest geerntet."},it:{c:"Matura a temperatura ambiente; una volta matura in frigorifero. Sensibile al freddo prolungato.",o:"Svizzera (Vallese, Ticino) in estate; altrimenti Italia o Francia di stagione.",a:"importata dall'emisfero sud, raccolta soda."}},
+ "Melon":{de:{c:"Ganz bei Raumtemperatur zum Nachreifen; angeschnitten im Kühlschrank, abgedeckt.",o:"Schweiz (begrenzt), Italien und Frankreich in der Saison im Sommer.",a:"aus der Ferne importiert (Mittelamerika, Marokko)."},it:{c:"Intero a temperatura ambiente per maturare; tagliato in frigorifero, coperto.",o:"Svizzera (limitata), Italia e Francia di stagione in estate.",a:"importato da lontano (America centrale, Marocco)."}},
+ "Coing":{de:{c:"Keller oder Kühlschrank, getrennt von anderem Obst (starker Duft); hält mehrere Wochen.",o:"Schweiz, Oktober–November.",k:"Nicht roh essbar: wird gekocht (Gelee, Quittenpaste, im Ofen)."},it:{c:"Cantina o frigorifero, lontano dalla frutta (profumo intenso); si conserva diverse settimane.",o:"Svizzera, ottobre–novembre.",k:"Non si consuma crudo: si cucina (gelatina, cotognata, al forno)."}},
+ "Rhubarbe":{de:{c:"Kühlschrank, Stangen in ein feuchtes Tuch gewickelt. In Stücken einfrierbar.",o:"Schweiz, April bis Juni.",a:"importiert.",k:"Botanisch ein Gemüse, wird wie Obst verwendet. Nur die Stange ist essbar: die Blätter sind oxalsäurereich und giftig."},it:{c:"Frigorifero, gambi avvolti in un panno umido. Si congela a pezzi.",o:"Svizzera, da aprile a giugno.",a:"importato.",k:"Botanicamente un ortaggio, consumato come frutta. Solo il gambo è commestibile: le foglie, ricche di acido ossalico, sono tossiche."}},
+ "Châtaigne":{de:{c:"Kühlschrank im perforierten Beutel oder kühl und luftig. Roh oder gekocht einfrierbar.",o:"Schweiz (Tessin, Wallis), Oktober–November.",a:"importiert (Italien, Spanien, Frankreich).",k:"Grosse Auslesefrüchte heissen in der Küche «Maroni» (nicht mit der ungeniessbaren Rosskastanie verwechseln)."},it:{c:"Frigorifero nel sacchetto forato, o luogo fresco e areato. Si congela cruda o cotta.",o:"Svizzera (Ticino, Vallese), ottobre–novembre.",a:"importata (Italia, Spagna, Francia).",k:"I frutti grossi selezionati si chiamano «marroni» in cucina (da non confondere con l'ippocastano, non commestibile)."}},
+ "Tomate":{de:{c:"Bei Raumtemperatur, nie im Kühlschrank (Kälte schadet Textur und Aroma). Vor direkter Sonne schützen.",o:"Schweiz, Freiland von Juli bis September; in der Schweiz im Gewächshaus in den Zwischensaisons.",a:"importiert (Spanien, Niederlande) aus dem beheizten Gewächshaus."},it:{c:"A temperatura ambiente, mai in frigorifero (il freddo altera consistenza e aromi). Al riparo dal sole diretto.",o:"Svizzera, pieno campo da luglio a settembre; in serra in Svizzera nelle mezze stagioni.",a:"importato (Spagna, Paesi Bassi) da serra riscaldata."}},
+ "Courgette":{de:{c:"Gemüsefach des Kühlschranks, innert 5–7 Tagen. Gekocht einfrierbar.",o:"Schweiz, im Sommer im Freiland; im Gewächshaus in den Zwischensaisons.",a:"importiert."},it:{c:"Cassetto verdura del frigorifero, entro 5–7 giorni. Si congela cotta.",o:"Svizzera, in pieno campo in estate; in serra nelle mezze stagioni.",a:"importata."}},
+ "Carotte":{de:{c:"Kühlschrank ohne Grün (das die Austrocknung beschleunigt), im Beutel. Lange haltbar.",o:"Schweiz, frisch im Sommer–Herbst und ganzjährig aus dem Lager.",a:""},it:{c:"Frigorifero senza le foglie (che accelerano la disidratazione), in un sacchetto. Lunga conservazione.",o:"Svizzera, fresca in estate–autunno e tutto l'anno in conservazione.",a:""}},
+ "Pomme de terre":{de:{c:"Dunkel, kühl, trocken und luftig; nie im Kühlschrank (Kälte wandelt Stärke in Zucker um). Vor Licht schützen (Ergrünen).",o:"Schweiz, Ernte Sommer–Herbst, ganzjährig aus dem Lager.",a:"",v:"Frühkartoffeln (Juni–Juli), Lagersorten (Herbst, Lager)."},it:{c:"Luogo buio, fresco, asciutto e areato; mai in frigorifero (il freddo trasforma l'amido in zucchero). Al riparo dalla luce (inverdimento).",o:"Svizzera, raccolta estate–autunno, disponibile tutto l'anno in conservazione.",a:"",v:"Patate novelle (giugno–luglio), varietà da serbo (autunno, conservazione)."}},
+ "Poireau":{de:{c:"Kühlschrank, stehend oder eingewickelt. Der Winterlauch erträgt Frost auf dem Feld.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero, in piedi o avvolto. Il porro invernale resiste al gelo in campo.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Chou blanc":{de:{c:"Kühlschrank oder kühler Keller; ein ganzer Kohl hält mehrere Wochen.",o:"Schweiz, Herbst und Winter (Ernte und Lagerung).",a:""},it:{c:"Frigorifero o cantina fresca; un cavolo intero si conserva diverse settimane.",o:"Svizzera, autunno e inverno (raccolta e conservazione).",a:""}},
+ "Chou rouge":{de:{c:"Kühlschrank oder kühler Keller; hält mehrere Wochen.",o:"Schweiz, Herbst und Winter (Ernte und Lagerung).",a:""},it:{c:"Frigorifero o cantina fresca; si conserva diverse settimane.",o:"Svizzera, autunno e inverno (raccolta e conservazione).",a:""}},
+ "Chou frisé":{de:{c:"Kühlschrank, einige Tage. Frost auf dem Feld macht ihn milder.",o:"Schweiz, Spätherbst und Winter.",a:""},it:{c:"Frigorifero, pochi giorni. Il gelo in campo addolcisce il gusto.",o:"Svizzera, tardo autunno e inverno.",a:""}},
+ "Chou de Bruxelles":{de:{c:"Kühlschrank, möglichst am Stiel, einige Tage.",o:"Schweiz, Spätherbst und Winter; Frost macht milder.",a:""},it:{c:"Frigorifero, possibilmente sul gambo, pochi giorni.",o:"Svizzera, tardo autunno e inverno; il gelo addolcisce.",a:""}},
+ "Chou-fleur":{de:{c:"Kühlschrank, 4–5 Tage, Kopf nach unten gegen Feuchtigkeit.",o:"Schweiz, Mai bis November.",a:"importiert (Frankreich, Spanien, Italien)."},it:{c:"Frigorifero, 4–5 giorni, testa verso il basso per limitare l'umidità.",o:"Svizzera, da maggio a novembre.",a:"importato (Francia, Spagna, Italia)."}},
+ "Chou-rave":{de:{c:"Kühlschrank ohne Blätter, im Beutel.",o:"Schweiz, Mai bis Oktober.",a:""},it:{c:"Frigorifero senza foglie, in un sacchetto.",o:"Svizzera, da maggio a ottobre.",a:""}},
+ "Brocoli":{de:{c:"Kühlschrank im perforierten Beutel, einige Tage. Blanchiert einfrierbar.",o:"Schweiz, Juni bis Oktober.",a:"importiert (Spanien, Italien), teils per Flugzeug."},it:{c:"Frigorifero nel sacchetto forato, pochi giorni. Si congela sbollentato.",o:"Svizzera, da giugno a ottobre.",a:"importato (Spagna, Italia), a volte in aereo."}},
+ "Épinard":{de:{c:"Kühlschrank, innert 1–2 Tagen verzehren. Blanchiert einfrierbar.",o:"Schweiz, Frühling (April–Mai) und Herbst (September–Oktober).",a:"importiert."},it:{c:"Frigorifero, consumare entro 1–2 giorni. Si congela sbollentato.",o:"Svizzera, primavera (aprile–maggio) e autunno (settembre–ottobre).",a:"importato."}},
+ "Laitue":{de:{c:"Kühlschrank, in ein feuchtes Tuch gewickelt. Erst vor dem Verzehr waschen.",o:"Schweiz, Freiland von April bis Oktober; Gewächshaus in den Zwischensaisons.",a:"importiert (lange Transportwege)."},it:{c:"Frigorifero, avvolta in un panno umido. Lavare solo prima di consumare.",o:"Svizzera, pieno campo da aprile a ottobre; serra nelle mezze stagioni.",a:"importata (lungo trasporto)."}},
+ "Mâche":{de:{c:"Kühlschrank, empfindlich, innert 1–2 Tagen.",o:"Schweiz, Salat der kalten Jahreszeit (Herbst–Winter).",a:""},it:{c:"Frigorifero, delicata, entro 1–2 giorni.",o:"Svizzera, insalata della stagione fredda (autunno–inverno).",a:""}},
+ "Roquette":{de:{c:"Kühlschrank, im Beutel, einige Tage. Erst vor dem Verzehr waschen.",o:"Schweiz, April bis Oktober.",a:"importiert."},it:{c:"Frigorifero, in un sacchetto, pochi giorni. Lavare solo prima.",o:"Svizzera, da aprile a ottobre.",a:"importata."}},
+ "Courge":{de:{c:"Ganz: kühl, trocken und luftig (nicht im Kühlschrank), haltbar von mehreren Wochen bis Monaten.",o:"Schweiz, Ernte im Herbst, Lager bis in den Winter.",v:"Butternut, Spaghettikürbis, Muskat usw. (Herbsternte, lange haltbar)."},it:{c:"Intera: luogo fresco, asciutto e areato (non in frigorifero), da diverse settimane a qualche mese.",o:"Svizzera, raccolta in autunno, conservazione fino all'inverno.",v:"Butternut, zucca spaghetti, moscata, ecc. (raccolta autunno, lunga conservazione)."}},
+ "Potiron":{de:{c:"Ganz: kühl, trocken und luftig; haltbar von mehreren Wochen bis Monaten.",o:"Schweiz, Ernte im Herbst, Lager bis in den Winter.",a:""},it:{c:"Intero: luogo fresco, asciutto e areato; da diverse settimane a qualche mese.",o:"Svizzera, raccolta in autunno, conservazione fino all'inverno.",a:""}},
+ "Oignon":{de:{c:"Dunkel, trocken und luftig, ausserhalb des Kühlschranks, getrennt von Kartoffeln.",o:"Schweiz, Ernte Spätsommer, ganzjährig aus dem Lager.",a:""},it:{c:"Luogo buio, asciutto e areato, fuori dal frigorifero, lontano dalle patate.",o:"Svizzera, raccolta fine estate, disponibile tutto l'anno in conservazione.",a:""}},
+ "Ail":{de:{c:"Trocken, luftig und schattig; nie im Kühlschrank (keimt und wird weich).",o:"Schweiz, Sommerernte, lange haltbar.",a:"importiert (Spanien, China), lange Transportwege."},it:{c:"Luogo asciutto, areato e in ombra; mai in frigorifero (germoglia e si ammorbidisce).",o:"Svizzera, raccolta estiva, lunga conservazione.",a:"importato (Spagna, Cina), lungo trasporto."}},
+ "Betterave rouge":{de:{c:"Kühlschrank ohne Grün, oder Keller. Lange haltbar.",o:"Schweiz, Sommer–Herbst, dann Lager.",a:""},it:{c:"Frigorifero senza foglie, o cantina. Lunga conservazione.",o:"Svizzera, estate–autunno, poi conservazione.",a:""}},
+ "Céleri-rave":{de:{c:"Kühlschrank oder Keller. Sehr gut lagerfähig.",o:"Schweiz, Herbst, dann Winterlager.",a:""},it:{c:"Frigorifero o cantina. Ottima conservazione.",o:"Svizzera, autunno, poi conservazione invernale.",a:""}},
+ "Fenouil":{de:{c:"Kühlschrank, im Beutel, innert einer Woche.",o:"Schweiz und Italien in der Saison, Sommer–Herbst.",a:"importiert."},it:{c:"Frigorifero, in un sacchetto, entro una settimana.",o:"Svizzera e Italia di stagione, estate–autunno.",a:"importato."}},
+ "Aubergine":{de:{c:"Vorzugsweise bei Raumtemperatur (kälteempfindlich), innert weniger Tage.",o:"Schweiz (Gewächshaus) und Italien in der Saison, Hochsommer.",a:"importiert (Spanien, Niederlande) aus dem beheizten Gewächshaus."},it:{c:"Preferibilmente a temperatura ambiente (sensibile al freddo), entro pochi giorni.",o:"Svizzera (serra) e Italia di stagione, piena estate.",a:"importata (Spagna, Paesi Bassi) da serra riscaldata."}},
+ "Poivron":{de:{c:"Eher dunkel und kühl (Keller) als im Kühlschrank lagern; innert einer Woche.",o:"Schweiz (Gewächshaus) und Italien in der Saison, Sommer–Herbst.",a:"importiert (Spanien, Niederlande) aus dem beheizten Gewächshaus."},it:{c:"Conservare in luogo buio e fresco (cantina) piuttosto che in frigorifero; entro una settimana.",o:"Svizzera (serra) e Italia di stagione, estate–autunno.",a:"importato (Spagna, Paesi Bassi) da serra riscaldata."}},
+ "Concombre":{de:{c:"Kühlschrank (nicht im kältesten Bereich), innert einer Woche.",o:"Schweiz, im Sommer im Freiland; Gewächshaus in den Zwischensaisons.",a:"aus dem beheizten Gewächshaus importiert."},it:{c:"Frigorifero (non nella zona più fredda), entro una settimana.",o:"Svizzera, in pieno campo in estate; serra nelle mezze stagioni.",a:"importato da serra riscaldata."}},
+ "Haricot":{de:{c:"Kühlschrank, im Beutel, einige Tage. Blanchiert einfrierbar.",o:"Schweiz, Sommer.",a:"importiert (Kenia, Ägypten, Marokko), oft per Flugzeug."},it:{c:"Frigorifero, in un sacchetto, pochi giorni. Si congela sbollentato.",o:"Svizzera, estate.",a:"importato (Kenya, Egitto, Marocco), spesso in aereo."}},
+ "Petits pois":{de:{c:"Rasch auspalen und verzehren (Zucker wandelt sich schnell in Stärke). Frisch einfrierbar.",o:"Schweiz, Juni–Juli.",a:"vor allem tiefgekühlt oder in der Dose."},it:{c:"Sgranare e consumare rapidamente (lo zucchero si trasforma in amido). Si congelano freschi.",o:"Svizzera, giugno–luglio.",a:"soprattutto surgelati o in scatola."}},
+ "Asperge":{de:{c:"Kühlschrank, stehend in etwas Wasser oder in ein feuchtes Tuch gewickelt; rasch verzehren.",o:"Schweiz, April bis Juni.",a:"importiert (Peru, Mexiko), lange Transportwege.",v:"Grüner Spargel (wächst im Freien) und weisser Spargel (angehäufelt, vor Licht geschützt), April–Juni."},it:{c:"Frigorifero, in piedi in poca acqua o avvolto in un panno umido; consumare rapidamente.",o:"Svizzera, da aprile a giugno.",a:"importato (Perù, Messico), lungo trasporto.",v:"Asparago verde (cresce all'aperto) e asparago bianco (rincalzato, al riparo dalla luce), aprile–giugno."}},
+ "Radis":{de:{c:"Kühlschrank ohne Grün; rasch verzehren (wird in einigen Tagen weich).",o:"Schweiz, Freiland von Frühling bis Herbst; Gewächshaus in den Zwischensaisons.",a:""},it:{c:"Frigorifero senza foglie; consumare rapidamente (ammorbidisce in pochi giorni).",o:"Svizzera, pieno campo dalla primavera all'autunno; serra nelle mezze stagioni.",a:""}},
+ "Endive":{de:{c:"Kühlschrank, vor Licht geschützt (das Bitterkeit fördert), in einem lichtdichten Beutel.",o:"Schweiz und Belgien, Herbst und Winter.",k:"Durch Treiberei erzeugt: die Wurzeln treiben im Dunkeln (Herbst–Winter)."},it:{c:"Frigorifero, al riparo dalla luce (che sviluppa l'amarezza), in un sacchetto opaco.",o:"Svizzera e Belgio, autunno e inverno.",k:"Prodotta per forzatura: le radici germogliano al buio (autunno–inverno)."}},
+ "Maïs doux":{de:{c:"Kühlschrank in den Blättern, rasch verzehren (Zucker wird zu Stärke).",o:"Schweiz, Spätsommer (August–September).",a:""},it:{c:"Frigorifero nelle foglie, consumare rapidamente (lo zucchero diventa amido).",o:"Svizzera, fine estate (agosto–settembre).",a:""}},
+ "Panais":{de:{c:"Kühlschrank oder Keller. Frost auf dem Feld verstärkt die Süsse.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero o cantina. Il gelo in campo accentua la dolcezza.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Topinambour":{de:{c:"Kühlschrank im Beutel (trocknet rasch aus) oder feuchter Keller.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero nel sacchetto (si disidrata in fretta) o cantina umida.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Navet":{de:{c:"Kühlschrank ohne Grün, oder Keller.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero senza foglie, o cantina.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Salsifis":{de:{c:"Kühlschrank oder Keller, in einem Tuch; hält mehrere Wochen.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero o cantina, in un panno; si conserva diverse settimane.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Scorsonère":{de:{c:"Kühlschrank oder Keller, in einem Tuch; hält mehrere Wochen.",o:"Schweiz, Herbst und Winter.",a:""},it:{c:"Frigorifero o cantina, in un panno; si conserva diverse settimane.",o:"Svizzera, autunno e inverno.",a:""}},
+ "Cardon":{de:{c:"Keller oder Kühlschrank, eingewickelt; hält einige Wochen.",o:"Schweiz (Genf, AOP-Stachelkardone), Spätherbst und Frühwinter.",k:"Traditionelles Genfer Wintergemüse; die Rippen werden gekocht gegessen."},it:{c:"Cantina o frigorifero, avvolto; si conserva qualche settimana.",o:"Svizzera (Ginevra, cardo spinoso AOP), tardo autunno e inizio inverno.",k:"Ortaggio invernale tradizionale ginevrino; le coste si consumano cotte."}},
+ "Bette à carde":{de:{c:"Kühlschrank, im Beutel, einige Tage.",o:"Schweiz, Sommer und Herbst.",a:""},it:{c:"Frigorifero, in un sacchetto, pochi giorni.",o:"Svizzera, estate e autunno.",a:""}},
+ "Champignon de Paris":{de:{c:"Kühlschrank im Papierbeutel (nie geschlossener Plastik). Nicht waschen: abbürsten.",o:"Schweiz, ganzjährig kultiviert."},it:{c:"Frigorifero nel sacchetto di carta (mai plastica chiusa). Non lavare: spazzolare.",o:"Svizzera, coltivato tutto l'anno."}},
+ "Pleurote":{de:{c:"Kühlschrank im Papierbeutel, innert weniger Tage verzehren.",o:"Schweiz, ganzjährig kultiviert."},it:{c:"Frigorifero nel sacchetto di carta, consumare entro pochi giorni.",o:"Svizzera, coltivato tutto l'anno."}},
+ "Shiitake":{de:{c:"Kühlschrank im Papierbeutel, innert weniger Tage verzehren.",o:"Schweiz (kultiviert) und Import; ganzjährig verfügbar."},it:{c:"Frigorifero nel sacchetto di carta, consumare entro pochi giorni.",o:"Svizzera (coltivato) e import; disponibile tutto l'anno."}},
+ "Girolle":{de:{c:"Kühlschrank in einem luftigen Behälter, innert 1–2 Tagen. Nicht einweichen: abbürsten.",o:"Schweiz (Sammlung), Sommer bis Herbst; auch importiert.",a:"importiert oder getrocknet.",d:"Verwechslungsgefahr mit giftigen Arten (Ölbaumtrichterling, Falscher Pfifferling). Nur sicher bestimmte Pilze essen; im Zweifel die Ernte von einer offiziellen Pilzkontrolle (VAPKO) prüfen lassen."},it:{c:"Frigorifero in un contenitore areato, entro 1–2 giorni. Non immergere: spazzolare.",o:"Svizzera (raccolta), estate–autunno; anche importato.",a:"importato o essiccato.",d:"Rischio di confusione con specie tossiche (Omphalotus, falso gallinaccio). Consumare solo funghi identificati con certezza; in caso di dubbio far controllare la raccolta da un controllore ufficiale (VAPKO)."}},
+ "Cèpe":{de:{c:"Kühlschrank in einem luftigen Behälter, innert 1–2 Tagen. Abbürsten, nicht einweichen.",o:"Schweiz (Sammlung), Spätsommer bis Herbst; auch importiert.",a:"importiert oder getrocknet.",d:"Verwechslungsgefahr mit dem Satansröhrling (giftig) oder dem Gallenröhrling. Nur sicher bestimmte Pilze essen; im Zweifel die Ernte von einer offiziellen Pilzkontrolle (VAPKO) prüfen lassen."},it:{c:"Frigorifero in un contenitore areato, entro 1–2 giorni. Spazzolare, non immergere.",o:"Svizzera (raccolta), fine estate–autunno; anche importato.",a:"importato o essiccato.",d:"Rischio di confusione con il boleto di Satana (tossico) o il boleto amaro. Consumare solo funghi identificati con certezza; in caso di dubbio far controllare la raccolta da un controllore ufficiale (VAPKO)."}},
+ "Morille":{de:{c:"Rasch verzehren oder getrocknet. Kühlschrank im Papierbeutel.",o:"Schweiz (Sammlung), Frühling; auch importiert (oft getrocknet).",a:"importiert.",d:"Roh giftig: nur gut gekocht verzehren. Verwechslungsgefahr mit der Frühjahrslorchel, potenziell tödlich. Im Zweifel die Ernte von einer offiziellen Pilzkontrolle (VAPKO) prüfen lassen."},it:{c:"Consumare rapidamente, o essiccata. Frigorifero nel sacchetto di carta.",o:"Svizzera (raccolta), primavera; anche importata (spesso essiccata).",a:"importata.",d:"Tossica cruda: consumare solo ben cotta. Rischio di confusione con la gyromitra, potenzialmente mortale. In caso di dubbio far controllare la raccolta da un controllore ufficiale (VAPKO)."}},
+ "Trompette de la mort":{de:{c:"Kühlschrank in einem luftigen Behälter, innert 1–2 Tagen; trocknet sehr gut.",o:"Schweiz (Sammlung), Herbst.",a:"importiert oder getrocknet.",d:"Nur sicher bestimmte Pilze essen; im Zweifel die Ernte von einer offiziellen Pilzkontrolle (VAPKO) prüfen lassen."},it:{c:"Frigorifero in un contenitore areato, entro 1–2 giorni; si essicca molto bene.",o:"Svizzera (raccolta), autunno.",a:"importata o essiccata.",d:"Consumare solo funghi identificati con certezza; in caso di dubbio far controllare la raccolta da un controllore ufficiale (VAPKO)."}},
+ "Pied-de-mouton":{de:{c:"Kühlschrank in einem luftigen Behälter, innert 1–2 Tagen.",o:"Schweiz (Sammlung), Herbst und Frühwinter.",a:"importiert.",d:"Nur sicher bestimmte Pilze essen; im Zweifel die Ernte von einer offiziellen Pilzkontrolle (VAPKO) prüfen lassen."},it:{c:"Frigorifero in un contenitore areato, entro 1–2 giorni.",o:"Svizzera (raccolta), autunno e inizio inverno.",a:"importato.",d:"Consumare solo funghi identificati con certezza; in caso di dubbio far controllare la raccolta da un controllore ufficiale (VAPKO)."}},
+ "Noix":{de:{c:"In der Schale: trocken, kühl und luftig, lange haltbar. Kerne: luftdicht im Kühl- oder Gefrierschrank (Fett wird ranzig).",o:"Schweiz, Ernte September–Oktober; in der Schale ganzjährig verfügbar."},it:{c:"In guscio: luogo asciutto, fresco e areato, lunga conservazione. Gherigli: contenitore ermetico in frigo o freezer (i grassi irrancidiscono).",o:"Svizzera, raccolta settembre–ottobre; in guscio disponibile tutto l'anno."}},
+ "Noisette":{de:{c:"In der Schale: trocken und kühl. Geschält: luftdicht, vor Licht geschützt.",o:"Schweiz, Ernte August–September."},it:{c:"In guscio: luogo asciutto e fresco. Sgusciate: contenitore ermetico, al riparo dalla luce.",o:"Svizzera, raccolta agosto–settembre."}},
+ "Amande":{de:{c:"Luftdicht, trocken und vor Licht geschützt; Kühlschrank für lange Lagerung.",o:"Importiert (Spanien, Italien, USA); Ernte August–September in den Erzeugerländern."},it:{c:"Contenitore ermetico, all'asciutto e al riparo dalla luce; frigorifero per lunga conservazione.",o:"Importata (Spagna, Italia, USA); raccolta agosto–settembre nei paesi produttori."}},
+ "Cacahuète":{de:{c:"Luftdicht, trocken; vor Licht und Wärme geschützt.",o:"Importiert (tropische und subtropische Gebiete); ganzjährig verfügbar."},it:{c:"Contenitore ermetico, all'asciutto; al riparo da luce e calore.",o:"Importata (zone tropicali e subtropicali); disponibile tutto l'anno."}},
+ "Noix de cajou":{de:{c:"Luftdicht, trocken; Kühl- oder Gefrierschrank für lange Lagerung.",o:"Importiert (Indien, Westafrika, Vietnam)."},it:{c:"Contenitore ermetico, all'asciutto; frigo o freezer per lunga conservazione.",o:"Importato (India, Africa occidentale, Vietnam)."}},
+ "Pistache":{de:{c:"Luftdicht, trocken und vor Licht geschützt.",o:"Importiert (Iran, Türkei, USA)."},it:{c:"Contenitore ermetico, all'asciutto e al riparo dalla luce.",o:"Importato (Iran, Turchia, USA)."}},
+ "Graine de tournesol":{de:{c:"Luftdicht, trocken und vor Licht geschützt; Kühlschrank für lange Lagerung.",o:"Schweiz (Sonnenblumenanbau) und Import; Ernte September–Oktober."},it:{c:"Contenitore ermetico, all'asciutto e al riparo dalla luce; frigorifero per lunga conservazione.",o:"Svizzera (girasole coltivato) e import; raccolta settembre–ottobre."}},
+ "Graine de courge":{de:{c:"Luftdicht, trocken und vor Licht geschützt.",o:"Schweiz, aus den im Herbst geernteten Kürbissen."},it:{c:"Contenitore ermetico, all'asciutto e al riparo dalla luce.",o:"Svizzera, dalle zucche raccolte in autunno."}},
+ "Graine de lin":{de:{c:"Luftdicht, trocken; gemahlen im Kühlschrank aufbewahren (wird rasch ranzig).",o:"Schweiz (Öllein) und Import; ganzjährig verfügbar."},it:{c:"Contenitore ermetico, all'asciutto; macinati conservare in frigorifero (irrancidiscono in fretta).",o:"Svizzera (lino oleoso) e import; disponibile tutto l'anno."}},
+ "Graine de sésame":{de:{c:"Luftdicht, trocken und vor Licht geschützt; Kühlschrank für lange Lagerung.",o:"Importiert (warme Gebiete); ganzjährig verfügbar."},it:{c:"Contenitore ermetico, all'asciutto e al riparo dalla luce; frigorifero per lunga conservazione.",o:"Importato (zone calde); disponibile tutto l'anno."}},
+ "Lait":{de:{c:"Kühlschrank bei 4–5 °C; Verbrauchsdatum beachten. UHT-Milch hält vor dem Öffnen bei Raumtemperatur, danach im Kühlschrank.",o:"Schweiz, ganzjährige Produktion.",k:"Ganzjährig verfügbar. Alpmilch stammt von Kühen auf der Sömmerung im Berggebiet, etwa von Juni bis September."},it:{c:"Frigorifero a 4–5 °C; rispettare la data di consumo. Il latte UHT si conserva a temperatura ambiente prima dell'apertura, poi in frigorifero.",o:"Svizzera, produzione tutto l'anno.",k:"Disponibile tutto l'anno. Il latte d'alpe proviene da mucche all'alpeggio in montagna, da giugno a settembre circa."}},
+ "Œuf":{de:{c:"Kühlschrank oder kühler Ort; mehrere Wochen haltbar. Test: ein frisches Ei sinkt und liegt am Boden eines Wasserglases; schwimmt es, ist es nicht mehr frisch.",o:"Schweiz, ganzjährige Produktion.",k:"Die Haltungsform (Freiland, Bio) und die Herkunft stehen auf Schale und Verpackung."},it:{c:"Frigorifero o luogo fresco; si conserva diverse settimane. Test: un uovo fresco affonda e resta disteso sul fondo di un bicchiere d'acqua; se galleggia, non è più fresco.",o:"Svizzera, produzione tutto l'anno.",k:"Il tipo di allevamento (all'aperto, biologico) e l'origine sono indicati su guscio e confezione."}},
+ "Miel":{de:{c:"Raumtemperatur, geschlossenes Gefäss, vor Licht geschützt; sehr lange haltbar. Die Kristallisation ist natürlich und umkehrbar (sanft im Wasserbad erwärmen).",o:"Schweiz, vom Frühling bis Spätsommer geerntet.",k:"Kindern unter einem Jahr keinen Honig geben (Risiko von Säuglingsbotulismus)."},it:{c:"Temperatura ambiente, contenitore chiuso, al riparo dalla luce; si conserva molto a lungo. La cristallizzazione è naturale e reversibile (scaldare dolcemente a bagnomaria).",o:"Svizzera, raccolto dalla primavera a fine estate.",k:"Non dare miele ai bambini di meno di un anno (rischio di botulismo infantile)."}},
+ "Huile d'olive":{de:{c:"Vor Licht und Wärme geschützt, gut verschlossen; innert eines Jahres verbrauchen (natives Öl oxidiert mit der Zeit).",o:"Importiert (Italien, Spanien, Griechenland …); das neue Öl wird nach der Olivenernte am Jahresende gepresst.",k:"Die Angabe «nativ extra» bezeichnet die höchste Güteklasse (mechanische Kaltextraktion, niedriger Säuregehalt)."},it:{c:"Al riparo da luce e calore, ben chiuso; consumare entro l'anno (l'olio vergine si ossida nel tempo).",o:"Importato (Italia, Spagna, Grecia …); l'olio nuovo si spreme dopo la raccolta delle olive, a fine anno.",k:"La dicitura «extra vergine» indica la categoria superiore (estrazione meccanica a freddo, bassa acidità)."}}
+};
 const DATA=[
- {n:'Abricot',t:'fruit',e:'🍑',s:'000000220000',tr:'loin',c:'Mûrit à température ambiante ; au réfrigérateur (bac) une fois mûr, 2 à 3 jours. Se congèle dénoyauté.',o:'Suisse (Valais principalement), récolté à maturité, transport court.',a:"Hors saison locale (juillet–août), importé d'Espagne, de France ou de l'hémisphère sud, récolté avant maturité pour le transport."},
- {n:'Pomme',t:'fruit',e:'🍎',s:'111100002211',tr:'loin',c:"Endroit sombre et frais (0–5 °C, humidité élevée) ou bac du réfrigérateur, à l'écart des autres fruits et légumes (éthylène). La durée dépend de la variété.",o:"Suisse, disponible une grande partie de l'année grâce au stockage.",a:"Hors stockage local, importée de l'hémisphère sud (Nouvelle-Zélande, Chili).",v:"Gala (dès septembre), Golden, Braeburn et Boskoop (conservation d'hiver), Maigold."},
- {n:'Poire',t:'fruit',e:'🍐',s:'110000002211',tr:'loin',c:'Mûrit à température ambiante, puis réfrigérateur. La chair cède près du pédoncule à maturité.',o:"Suisse à la récolte (automne) et en conservation jusqu'en hiver.",a:"Hors saison locale, importée de l'hémisphère sud.",v:'Williams (août–septembre), Conférence et Kaiser (automne, conservation).'},
- {n:'Fraise',t:'fruit',e:'🍓',s:'000022210000',c:'Réfrigérateur, non lavées, étalées ; à consommer sous 1 à 2 jours. Laver juste avant.',o:'Suisse, mai à juillet, récoltée à maturité.',a:"Hors saison locale, importée d'Espagne et du Maroc (culture précoce sous abri, récolte avant maturité, transport long)."},
- {n:'Cerise',t:'fruit',e:'🍒',s:'000002200000',c:'Réfrigérateur, non équeutées, dans un récipient aéré.',o:'Suisse, juin–juillet.',a:"Hors saison locale, importée (Espagne, Turquie) ou de l'hémisphère sud."},
- {n:'Framboise',t:'fruit',e:'🫐',s:'000002222100',c:'Fragile : réfrigérateur, à plat, à consommer sous 1 à 2 jours. Se congèle telle quelle.',o:"Suisse, de l'été au début de l'automne (variétés remontantes).",a:'Hors saison locale, importée par transport rapide.'},
- {n:'Myrtille',t:'fruit',e:'🫐',s:'000000221000',tr:'loin',c:'Réfrigérateur dans leur barquette, non lavées. Se congèlent telles quelles.',o:'Suisse (myrtille cultivée), juillet–août.',a:'Hors saison locale, importée (Espagne, Maroc, Amérique du Sud).'},
- {n:'Mûre',t:'fruit',e:'🫐',s:'000000022000',c:'Réfrigérateur, à plat, à consommer rapidement. Se congèle telle quelle.',o:'Suisse (cultivée ou cueillette), août–septembre.',a:'Hors saison locale, importée.',w:'Mûre (fruit)'},
- {n:'Groseille',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavées, sous quelques jours. Se congèle telle quelle.',o:'Suisse, juin à août.',a:'Hors saison locale, peu importée.',w:'Groseille à grappes'},
- {n:'Cassis',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavé, sous quelques jours. Se congèle tel quel.',o:'Suisse, juin à août.',a:'Hors saison locale, surtout transformé ou surgelé.',w:'Cassis (fruit)'},
- {n:'Raisin de table',t:'fruit',e:'🍇',s:'000000012210',tr:'loin',c:'Réfrigérateur dans un sac perforé ; laver juste avant de consommer.',o:"Suisse (Valais, Tessin, Trois-Lacs) et Italie de saison, fin d'été et automne.",a:"Hors saison locale, importé de l'hémisphère sud en hiver et au printemps.",w:'Raisin'},
- {n:'Prune',t:'fruit',e:'🍑',s:'000000122000',c:'Mûrit à température ambiante, puis réfrigérateur. La pruine (voile blanc) indique la fraîcheur.',o:'Suisse, juillet à septembre.',a:'Hors saison locale, importée.'},
- {n:'Pruneau',t:'fruit',e:'🍑',s:'000000022100',c:'Mûrit à température ambiante, puis réfrigérateur. Se congèle dénoyauté.',o:'Suisse, août–septembre (pruneau Fellenberg notamment).',a:'Hors saison locale, importé.'},
- {n:'Pêche',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"Hors saison locale, importée de l'hémisphère sud, récoltée ferme.",w:'Pêche (fruit)'},
- {n:'Nectarine',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"Hors saison locale, importée de l'hémisphère sud, récoltée ferme.",w:'Nectarine'},
- {n:'Melon',t:'fruit',e:'🍈',s:'000000221000',tr:'loin',c:'Entier à température ambiante pour finir de mûrir ; entamé, au réfrigérateur, filmé.',o:'Suisse (production limitée), Italie et France de saison en été.',a:'Hors saison locale, importé de loin (Amérique centrale, Maroc).'},
+ {n:'Abricot',t:'fruit',e:'🍑',s:'000000220000',tr:'loin',c:'Mûrit à température ambiante ; au réfrigérateur (bac) une fois mûr, 2 à 3 jours. Se congèle dénoyauté.',o:'Suisse (Valais principalement), récolté à maturité, transport court.',a:"(juillet–août) importé d'Espagne, de France ou de l'hémisphère sud, récolté avant maturité pour le transport."},
+ {n:'Pomme',t:'fruit',e:'🍎',s:'111100002211',tr:'loin',c:"Endroit sombre et frais (0–5 °C, humidité élevée) ou bac du réfrigérateur, à l'écart des autres fruits et légumes (éthylène). La durée dépend de la variété.",o:"Suisse, disponible une grande partie de l'année grâce au stockage.",a:"importée de l'hémisphère sud (Nouvelle-Zélande, Chili), hors période de stockage local.",v:"Gala (dès septembre), Golden, Braeburn et Boskoop (conservation d'hiver), Maigold."},
+ {n:'Poire',t:'fruit',e:'🍐',s:'110000002211',tr:'loin',c:'Mûrit à température ambiante, puis réfrigérateur. La chair cède près du pédoncule à maturité.',o:"Suisse à la récolte (automne) et en conservation jusqu'en hiver.",a:"importée de l'hémisphère sud.",v:'Williams (août–septembre), Conférence et Kaiser (automne, conservation).'},
+ {n:'Fraise',t:'fruit',e:'🍓',s:'000022210000',c:'Réfrigérateur, non lavées, étalées ; à consommer sous 1 à 2 jours. Laver juste avant.',o:'Suisse, mai à juillet, récoltée à maturité.',a:"importée d'Espagne et du Maroc (culture précoce sous abri, récolte avant maturité, transport long)."},
+ {n:'Cerise',t:'fruit',e:'🍒',s:'000002200000',c:'Réfrigérateur, non équeutées, dans un récipient aéré.',o:'Suisse, juin–juillet.',a:"importée (Espagne, Turquie) ou de l'hémisphère sud."},
+ {n:'Framboise',t:'fruit',e:'🫐',s:'000002222100',c:'Fragile : réfrigérateur, à plat, à consommer sous 1 à 2 jours. Se congèle telle quelle.',o:"Suisse, de l'été au début de l'automne (variétés remontantes).",a:'importée par transport rapide.'},
+ {n:'Myrtille',t:'fruit',e:'🫐',s:'000000221000',tr:'loin',c:'Réfrigérateur dans leur barquette, non lavées. Se congèlent telles quelles.',o:'Suisse (myrtille cultivée), juillet–août.',a:'importée (Espagne, Maroc, Amérique du Sud).'},
+ {n:'Mûre',t:'fruit',e:'🫐',s:'000000022000',c:'Réfrigérateur, à plat, à consommer rapidement. Se congèle telle quelle.',o:'Suisse (cultivée ou cueillette), août–septembre.',a:'importée.',w:'Mûre (fruit)'},
+ {n:'Groseille',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavées, sous quelques jours. Se congèle telle quelle.',o:'Suisse, juin à août.',a:'peu importée.',w:'Groseille à grappes'},
+ {n:'Cassis',t:'fruit',e:'🍇',s:'000002220000',c:'Réfrigérateur, non lavé, sous quelques jours. Se congèle tel quel.',o:'Suisse, juin à août.',a:'surtout transformé ou surgelé.',w:'Cassis (fruit)'},
+ {n:'Raisin de table',t:'fruit',e:'🍇',s:'000000012210',tr:'loin',c:'Réfrigérateur dans un sac perforé ; laver juste avant de consommer.',o:"Suisse (Valais, Tessin, Trois-Lacs) et Italie de saison, fin d'été et automne.",a:"importé de l'hémisphère sud en hiver et au printemps.",w:'Raisin'},
+ {n:'Prune',t:'fruit',e:'🍑',s:'000000122000',c:'Mûrit à température ambiante, puis réfrigérateur. La pruine (voile blanc) indique la fraîcheur.',o:'Suisse, juillet à septembre.',a:'importée.'},
+ {n:'Pruneau',t:'fruit',e:'🍑',s:'000000022100',c:'Mûrit à température ambiante, puis réfrigérateur. Se congèle dénoyauté.',o:'Suisse, août–septembre (pruneau Fellenberg notamment).',a:'importé.'},
+ {n:'Pêche',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"importée de l'hémisphère sud, récoltée ferme.",w:'Pêche (fruit)'},
+ {n:'Nectarine',t:'fruit',e:'🍑',s:'000001221000',tr:'loin',c:'Mûrit à température ambiante ; réfrigérateur une fois mûre. Sensible au froid prolongé.',o:'Suisse (Valais, Tessin) en été ; sinon Italie ou France de saison.',a:"importée de l'hémisphère sud, récoltée ferme.",w:'Nectarine'},
+ {n:'Melon',t:'fruit',e:'🍈',s:'000000221000',tr:'loin',c:'Entier à température ambiante pour finir de mûrir ; entamé, au réfrigérateur, filmé.',o:'Suisse (production limitée), Italie et France de saison en été.',a:'importé de loin (Amérique centrale, Maroc).'},
  {n:'Coing',t:'fruit',e:'🍐',s:'000000000220',c:"Cave ou réfrigérateur, à l'écart des autres fruits (parfum puissant) ; se garde plusieurs semaines.",o:'Suisse, octobre–novembre.',a:'—',k:'Ne se consomme pas cru : se cuisine (gelée, pâte de coing, rôti).'},
- {n:'Rhubarbe',t:'fruit',e:'🪴',s:'000222000000',c:'Réfrigérateur, tiges enveloppées dans un linge humide. Se congèle en tronçons.',o:'Suisse, avril à juin.',a:'Hors saison locale, importée.',k:'Botaniquement un légume, consommée comme un fruit. Seule la tige est comestible : les feuilles, riches en acide oxalique, sont toxiques.'},
- {n:'Châtaigne',t:'fruit',e:'🌰',s:'000000000220',c:'Réfrigérateur dans un sac perforé, ou endroit frais et aéré. Se congèle crue ou cuite.',o:'Suisse (Tessin, Valais), octobre–novembre.',a:'Hors saison locale, importée (Italie, Espagne, France).',k:"Les gros fruits sélectionnés sont appelés « marrons » en cuisine (à ne pas confondre avec le marron d'Inde, non comestible)."},
- {n:'Tomate',t:'légume',e:'🍅',s:'000033222300',c:'À température ambiante, jamais au réfrigérateur (le froid altère texture et arômes). À l\u0027abri du soleil direct.',o:'Suisse, culture en extérieur de juillet à septembre ; sous serre en Suisse aux intersaisons.',a:'Hors saison locale, importée (Espagne, Pays-Bas) sous serre chauffée.'},
- {n:'Courgette',t:'légume',e:'🥒',s:'000032222300',c:'Bac à légumes du réfrigérateur, sous 5 à 7 jours. Se congèle cuite.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'Hors saison locale, importée.'},
+ {n:'Rhubarbe',t:'fruit',e:'🪴',s:'000222000000',c:'Réfrigérateur, tiges enveloppées dans un linge humide. Se congèle en tronçons.',o:'Suisse, avril à juin.',a:'importée.',k:'Botaniquement un légume, consommée comme un fruit. Seule la tige est comestible : les feuilles, riches en acide oxalique, sont toxiques.'},
+ {n:'Châtaigne',t:'fruit',e:'🌰',s:'000000000220',c:'Réfrigérateur dans un sac perforé, ou endroit frais et aéré. Se congèle crue ou cuite.',o:'Suisse (Tessin, Valais), octobre–novembre.',a:'importée (Italie, Espagne, France).',k:"Les gros fruits sélectionnés sont appelés « marrons » en cuisine (à ne pas confondre avec le marron d'Inde, non comestible)."},
+ {n:'Tomate',t:'légume',e:'🍅',s:'000033222300',c:'À température ambiante, jamais au réfrigérateur (le froid altère texture et arômes). À l\u0027abri du soleil direct.',o:'Suisse, culture en extérieur de juillet à septembre ; sous serre en Suisse aux intersaisons.',a:'importée (Espagne, Pays-Bas) sous serre chauffée.'},
+ {n:'Courgette',t:'légume',e:'🥒',s:'000032222300',c:'Bac à légumes du réfrigérateur, sous 5 à 7 jours. Se congèle cuite.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'importée.'},
  {n:'Carotte',t:'légume',e:'🥕',s:'111112222211',c:'Réfrigérateur sans les fanes (qui accélèrent la déshydratation), dans un sac. Conservation longue.',o:"Suisse, fraîche en été-automne et toute l'année en conservation.",a:'—'},
  {n:'Pomme de terre',t:'légume',e:'🥔',s:'111112222211',c:"Endroit sombre, frais, sec et aéré ; jamais au réfrigérateur (le froid convertit l'amidon en sucre). À l'abri de la lumière (verdissement).",o:"Suisse, récolte d'été-automne, disponible toute l'année en conservation.",a:'—',v:"Pommes de terre nouvelles (juin–juillet), variétés de garde (automne, conservation)."},
  {n:'Poireau',t:'légume',e:'🥬',s:'222200002222',c:"Réfrigérateur, debout ou enveloppé. Le poireau d'hiver résiste au gel au champ.",o:'Suisse, automne et hiver.',a:'—'},
@@ -395,26 +482,26 @@ const DATA=[
  {n:'Chou rouge',t:'légume',e:'🥬',s:'111000002221',c:'Réfrigérateur ou cave fraîche ; se garde plusieurs semaines.',o:'Suisse, automne et hiver (récolte puis stockage).',a:'—'},
  {n:'Chou frisé',alt:'chou de Milan',t:'légume',e:'🥬',s:'220000002222',c:'Réfrigérateur, sous quelques jours. Le gel au champ adoucit le goût.',o:"Suisse, fin d'automne et hiver.",a:'—'},
  {n:'Chou de Bruxelles',t:'légume',e:'🥬',s:'110000001222',c:'Réfrigérateur, sur tige si possible, sous quelques jours.',o:"Suisse, fin d'automne et hiver ; le gel adoucit le goût.",a:'—'},
- {n:'Chou-fleur',t:'légume',e:'🥦',s:'000022222220',c:"Réfrigérateur, sous 4 à 5 jours, tête vers le bas pour limiter l'humidité.",o:'Suisse, mai à novembre.',a:'Hors saison locale, importé (France, Espagne, Italie).'},
+ {n:'Chou-fleur',t:'légume',e:'🥦',s:'000022222220',c:"Réfrigérateur, sous 4 à 5 jours, tête vers le bas pour limiter l'humidité.",o:'Suisse, mai à novembre.',a:'importé (France, Espagne, Italie).'},
  {n:'Chou-rave',t:'légume',e:'🥬',s:'000022222200',c:'Réfrigérateur sans les feuilles, dans un sac.',o:'Suisse, mai à octobre.',a:'—'},
- {n:'Brocoli',t:'légume',e:'🥦',s:'000002222200',tr:'loin',c:'Réfrigérateur, dans un sac perforé, sous quelques jours. Se congèle blanchi.',o:'Suisse, juin à octobre.',a:'Hors saison locale, importé (Espagne, Italie), parfois par avion.'},
- {n:'Épinard',t:'légume',e:'🥬',s:'000220002200',c:'Réfrigérateur, à consommer sous 1 à 2 jours. Se congèle blanchi.',o:'Suisse, printemps (avril–mai) et automne (septembre–octobre).',a:'Hors saison locale, importé.'},
- {n:'Laitue',t:'légume',e:'🥗',s:'003222222330',c:'Réfrigérateur, enveloppée dans un linge humide. Laver juste avant de consommer.',o:"Suisse, en extérieur d'avril à octobre ; sous serre aux intersaisons.",a:'Hors saison locale, importée (transport long).'},
+ {n:'Brocoli',t:'légume',e:'🥦',s:'000002222200',tr:'loin',c:'Réfrigérateur, dans un sac perforé, sous quelques jours. Se congèle blanchi.',o:'Suisse, juin à octobre.',a:'importé (Espagne, Italie), parfois par avion.'},
+ {n:'Épinard',t:'légume',e:'🥬',s:'000220002200',c:'Réfrigérateur, à consommer sous 1 à 2 jours. Se congèle blanchi.',o:'Suisse, printemps (avril–mai) et automne (septembre–octobre).',a:'importé.'},
+ {n:'Laitue',t:'légume',e:'🥗',s:'003222222330',c:'Réfrigérateur, enveloppée dans un linge humide. Laver juste avant de consommer.',o:"Suisse, en extérieur d'avril à octobre ; sous serre aux intersaisons.",a:'importée (transport long).'},
  {n:'Mâche',alt:'doucette',t:'légume',e:'🌿',s:'222000000222',c:'Réfrigérateur, fragile, sous 1 à 2 jours.',o:'Suisse, salade de la saison froide (automne–hiver).',a:'—'},
- {n:'Roquette',t:'légume',e:'🌿',s:'000222222200',c:'Réfrigérateur, dans un sac, sous quelques jours. Laver juste avant.',o:'Suisse, avril à octobre.',a:'Hors saison locale, importée.'},
+ {n:'Roquette',t:'légume',e:'🌿',s:'000222222200',c:'Réfrigérateur, dans un sac, sous quelques jours. Laver juste avant.',o:'Suisse, avril à octobre.',a:'importée.'},
  {n:'Courge',t:'légume',e:'🎃',s:'110000001221',c:'Entière : endroit frais, sec et aéré (pas le réfrigérateur), conservation de plusieurs semaines à quelques mois.',o:"Suisse, récolte d'automne, conservation jusqu'en hiver.",a:'—',v:'Butternut, courge spaghetti, muscade, etc. (récolte automne, longue conservation).',w:'Courge'},
  {n:'Potiron',t:'légume',e:'🎃',s:'110000001221',c:'Entier : endroit frais, sec et aéré ; conservation de plusieurs semaines à quelques mois.',o:"Suisse, récolte d'automne, conservation jusqu'en hiver.",a:'—'},
  {n:'Oignon',t:'légume',e:'🧅',s:'111111122111',c:"Endroit sombre, sec et aéré, hors du réfrigérateur, à l'écart des pommes de terre.",o:"Suisse, récolte fin d'été, disponible toute l'année en conservation.",a:'—'},
- {n:'Ail',t:'légume',e:'🧄',s:'111111221111',c:"Endroit sec, aéré et à l'ombre ; jamais au réfrigérateur (germe et ramollit).",o:"Suisse, récolte d'été, conservation longue.",a:'Hors saison locale, importé (Espagne, Chine), transport long.'},
+ {n:'Ail',t:'légume',e:'🧄',s:'111111221111',c:"Endroit sec, aéré et à l'ombre ; jamais au réfrigérateur (germe et ramollit).",o:"Suisse, récolte d'été, conservation longue.",a:'importé (Espagne, Chine), transport long.'},
  {n:'Betterave rouge',t:'légume',e:'🫜',s:'111112222211',c:'Réfrigérateur sans les fanes, ou cave. Conservation longue.',o:'Suisse, été-automne puis conservation.',a:'—',w:'Betterave potagère'},
  {n:'Céleri-rave',t:'légume',e:'🥬',s:'111000002221',c:'Réfrigérateur ou cave. Excellente conservation.',o:'Suisse, automne puis conservation hivernale.',a:'—',w:'Céleri-rave'},
- {n:'Fenouil',t:'légume',e:'🌿',s:'000002222200',c:'Réfrigérateur, dans un sac, sous une semaine.',o:'Suisse et Italie de saison, été-automne.',a:'Hors saison locale, importé.'},
- {n:'Aubergine',t:'légume',e:'🍆',s:'000003222300',c:'À température ambiante de préférence (sensible au froid), à consommer sous quelques jours.',o:'Suisse (serre) et Italie de saison, plein été.',a:'Hors saison locale, importée (Espagne, Pays-Bas) sous serre chauffée.'},
- {n:'Poivron',t:'légume',e:'🫑',s:'000003222200',c:"À conserver dans un endroit sombre et frais (cave) plutôt qu'au réfrigérateur ; sous une semaine.",o:'Suisse (serre) et Italie de saison, été-automne.',a:'Hors saison locale, importé (Espagne, Pays-Bas) sous serre chauffée.'},
- {n:'Concombre',t:'légume',e:'🥒',s:'000332222300',c:'Réfrigérateur (pas la zone la plus froide), sous une semaine.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'Hors saison locale, importé sous serre chauffée.'},
- {n:'Haricot',t:'légume',e:'🫛',s:'000000222000',tr:'loin',c:'Réfrigérateur, dans un sac, sous quelques jours. Se congèle blanchi.',o:'Suisse, été.',a:'Hors saison locale, importé (Kenya, Égypte, Maroc), souvent par avion.',w:'Haricot'},
- {n:'Petits pois',t:'légume',e:'🫛',s:'000002200000',c:'À écosser et consommer rapidement (le sucre se convertit vite en amidon). Se congèlent frais.',o:'Suisse, juin–juillet.',a:'Hors saison locale, surtout surgelés ou en conserve.',w:'Petit pois'},
- {n:'Asperge',t:'légume',e:'🌿',s:'000222000000',tr:'loin',c:"Réfrigérateur, debout dans un peu d'eau ou enveloppée dans un linge humide ; à consommer rapidement.",o:'Suisse, avril à juin.',a:'Hors saison locale, importée (Pérou, Mexique), transport long.',v:"Asperge verte (pousse à l'air libre) et asperge blanche (buttée, à l'abri de la lumière), avril–juin."},
+ {n:'Fenouil',t:'légume',e:'🌿',s:'000002222200',c:'Réfrigérateur, dans un sac, sous une semaine.',o:'Suisse et Italie de saison, été-automne.',a:'importé.'},
+ {n:'Aubergine',t:'légume',e:'🍆',s:'000003222300',c:'À température ambiante de préférence (sensible au froid), à consommer sous quelques jours.',o:'Suisse (serre) et Italie de saison, plein été.',a:'importée (Espagne, Pays-Bas) sous serre chauffée.'},
+ {n:'Poivron',t:'légume',e:'🫑',s:'000003222200',c:"À conserver dans un endroit sombre et frais (cave) plutôt qu'au réfrigérateur ; sous une semaine.",o:'Suisse (serre) et Italie de saison, été-automne.',a:'importé (Espagne, Pays-Bas) sous serre chauffée.'},
+ {n:'Concombre',t:'légume',e:'🥒',s:'000332222300',c:'Réfrigérateur (pas la zone la plus froide), sous une semaine.',o:'Suisse, en extérieur en été ; sous serre aux intersaisons.',a:'importé sous serre chauffée.'},
+ {n:'Haricot',t:'légume',e:'🫛',s:'000000222000',tr:'loin',c:'Réfrigérateur, dans un sac, sous quelques jours. Se congèle blanchi.',o:'Suisse, été.',a:'importé (Kenya, Égypte, Maroc), souvent par avion.',w:'Haricot'},
+ {n:'Petits pois',t:'légume',e:'🫛',s:'000002200000',c:'À écosser et consommer rapidement (le sucre se convertit vite en amidon). Se congèlent frais.',o:'Suisse, juin–juillet.',a:'surtout surgelés ou en conserve.',w:'Petit pois'},
+ {n:'Asperge',t:'légume',e:'🌿',s:'000222000000',tr:'loin',c:"Réfrigérateur, debout dans un peu d'eau ou enveloppée dans un linge humide ; à consommer rapidement.",o:'Suisse, avril à juin.',a:'importée (Pérou, Mexique), transport long.',v:"Asperge verte (pousse à l'air libre) et asperge blanche (buttée, à l'abri de la lumière), avril–juin."},
  {n:'Radis',t:'légume',e:'🌶️',s:'003222222330',c:'Réfrigérateur sans les fanes ; à consommer rapidement (ramollit en quelques jours).',o:"Suisse, en extérieur du printemps à l'automne ; sous serre aux intersaisons.",a:'—',w:'Radis'},
  {n:'Endive',alt:'chicon',t:'légume',e:'🥬',s:'222000000222',c:"Réfrigérateur, à l'abri de la lumière (qui développe l'amertume), dans un sac opaque.",o:'Suisse et Belgique, automne et hiver.',a:'—',k:"Produite par forçage : les racines poussent à l'obscurité (automne–hiver).",w:'Endive'},
  {n:'Maïs doux',t:'légume',e:'🌽',s:'000000022000',c:'Réfrigérateur dans ses feuilles, à consommer rapidement (le sucre se convertit en amidon).',o:"Suisse, fin d'été (août–septembre).",a:'—',w:'Maïs doux'},
@@ -428,11 +515,11 @@ const DATA=[
  {n:'Champignon de Paris',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier (jamais un plastique fermé). Ne pas laver : brosser.',o:"Suisse, cultivé toute l'année.",a:'—',w:'Champignon de Paris'},
  {n:'Pleurote',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:"Suisse, cultivé toute l'année.",a:'—',w:'Pleurote'},
  {n:'Shiitake',t:'champignon',e:'🍄',s:'111111111111',c:'Réfrigérateur dans un sac en papier, à consommer sous quelques jours.',o:"Suisse (cultivé) et import ; disponible toute l'année.",a:'—',w:'Shiitake'},
- {n:'Girolle',alt:'chanterelle',t:'champignon',e:'🍄',s:'000002222200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Ne pas tremper : brosser.',o:'Suisse (cueillette), été à automne ; aussi importée.',a:'Hors saison locale, importée ou séchée.',d:"Risque de confusion avec des espèces toxiques (clitocybe de l'olivier, fausse girolle). Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).",w:'Girolle'},
- {n:'Cèpe',alt:'bolet',t:'champignon',e:'🍄',s:'000000022200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Brosser, ne pas tremper.',o:"Suisse (cueillette), fin d'été à automne ; aussi importé.",a:'Hors saison locale, importé ou séché.',d:'Risque de confusion avec le bolet de Satan (toxique) ou le bolet amer. Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Cèpe'},
- {n:'Morille',t:'champignon',e:'🍄',s:'000220000000',c:'À consommer rapidement, ou séchée. Réfrigérateur dans un sac en papier.',o:'Suisse (cueillette), printemps ; aussi importée (souvent séchée).',a:'Hors saison locale, importée.',d:'Toxique crue : à consommer uniquement bien cuite. Risque de confusion avec le gyromitre, potentiellement mortel. En cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Morille'},
- {n:'Trompette de la mort',t:'champignon',e:'🍄',s:'000000000222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours ; sèche très bien.',o:'Suisse (cueillette), automne.',a:'Hors saison locale, importée ou séchée.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Trompette de la mort'},
- {n:'Pied-de-mouton',t:'champignon',e:'🍄',s:'000000002222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours.',o:"Suisse (cueillette), automne et début d'hiver.",a:'Hors saison locale, importé.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Pied-de-mouton'},
+ {n:'Girolle',alt:'chanterelle',t:'champignon',e:'🍄',s:'000002222200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Ne pas tremper : brosser.',o:'Suisse (cueillette), été à automne ; aussi importée.',a:'importée ou séchée.',d:"Risque de confusion avec des espèces toxiques (clitocybe de l'olivier, fausse girolle). Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).",w:'Girolle'},
+ {n:'Cèpe',alt:'bolet',t:'champignon',e:'🍄',s:'000000022200',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours. Brosser, ne pas tremper.',o:"Suisse (cueillette), fin d'été à automne ; aussi importé.",a:'importé ou séché.',d:'Risque de confusion avec le bolet de Satan (toxique) ou le bolet amer. Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Cèpe'},
+ {n:'Morille',t:'champignon',e:'🍄',s:'000220000000',c:'À consommer rapidement, ou séchée. Réfrigérateur dans un sac en papier.',o:'Suisse (cueillette), printemps ; aussi importée (souvent séchée).',a:'importée.',d:'Toxique crue : à consommer uniquement bien cuite. Risque de confusion avec le gyromitre, potentiellement mortel. En cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Morille'},
+ {n:'Trompette de la mort',t:'champignon',e:'🍄',s:'000000000222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours ; sèche très bien.',o:'Suisse (cueillette), automne.',a:'importée ou séchée.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Trompette de la mort'},
+ {n:'Pied-de-mouton',t:'champignon',e:'🍄',s:'000000002222',c:'Réfrigérateur dans un récipient aéré, à consommer sous 1 à 2 jours.',o:"Suisse (cueillette), automne et début d'hiver.",a:'importé.',d:'Ne consommer que des champignons identifiés avec certitude ; en cas de doute, faire contrôler la récolte par un contrôleur officiel (VAPKO).',w:'Pied-de-mouton'},
  {n:'Noix',t:'oleagineux',e:'🌰',s:'111111112211',c:'En coque : endroit sec, frais et aéré, longue conservation. Cerneaux : récipient hermétique au réfrigérateur ou au congélateur (les corps gras rancissent).',o:"Suisse, récolte septembre–octobre ; disponible toute l'année en coque.",a:'—',w:'Noix'},
  {n:'Noisette',t:'oleagineux',e:'🌰',s:'111111122111',c:"En coque : endroit sec et frais. Décortiquées : récipient hermétique, à l'abri de la lumière.",o:'Suisse, récolte août–septembre.',a:'—',w:'Noisette'},
  {n:'Amande',t:'oleagineux',e:'🌰',s:'111111111111',imp:1,c:"Récipient hermétique, au sec et à l'abri de la lumière ; réfrigérateur pour une longue conservation.",o:'Importée (Espagne, Italie, États-Unis) ; récolte août–septembre dans les pays producteurs.',a:'—',w:'Amande'},
@@ -462,6 +549,7 @@ function monthsFull(){ return LMONTHS_FULL[settings.lang]||LMONTHS_FULL.fr; }
 function nm(it){ if(settings.lang==='fr') return it.n; return (NAMES[it.n]&&NAMES[it.n][settings.lang])||it.n; }
 function altOf(it){ if(!it.alt) return ''; if(settings.lang==='fr') return it.alt; return (ALTS[it.n]&&ALTS[it.n][settings.lang])||it.alt; }
 function altHtml(it){ const a=altOf(it); return a?'<span class="alt">'+a+'</span>':''; }
+function fld(it,key){ if(settings.lang!=='fr'){ const tr=TRD[it.n]&&TRD[it.n][settings.lang]; if(tr&&tr[key]) return tr[key]; } return it[key]; }
 function isFav(n){ return store.fav.indexOf(n)!==-1; }
 function toggleFav(n){ const i=store.fav.indexOf(n); if(i===-1){ store.fav.push(n);} else { store.fav.splice(i,1);} save(); }
 function commentOf(n){ return store.comments[n]||''; }
@@ -520,7 +608,6 @@ function render(){
   else if(curTab==='favoris') app.innerHTML=renderFavoris();
   else app.innerHTML=renderReglages();
   bindSearch();
-  if(curTab==='calendrier') centerCalendar();
 }
 function listHtml(){ const list=sortedFor(curMonth); return list.length ? list.map(o=>itemRow(o.it,o.i)).join('') : '<div class="empty"><div class="big">🧺</div>'+t('empty_list')+'</div>'; }
 function renderNow(){
@@ -546,8 +633,8 @@ function itemRow(it,i){
   const badge = bd==='soon'?'<span class="badge soon">'+t('badge_soon')+'</span>':bd==='last'?'<span class="badge last">'+t('badge_last')+'</span>':'';
   const trc=transportClass(it,curMonth);
   const trChip='<span class="tr tr-'+trc+'">'+trIcon(trc)+' '+trShort(trc)+'</span>';
-  return '<div class="card item" onclick="openDetail('+i+')"><div class="emoji">'+it.e+'</div><div class="body">'+
-    '<div class="name">'+nm(it)+altHtml(it)+badge+'<span class="tag '+tagClass(it.t)+'">'+t(catKey(it.t))+'</span></div>'+
+  return '<div class="card item" onclick="openDetail('+i+')">'+badge+'<div class="emoji">'+it.e+'</div><div class="body">'+
+    '<div class="name">'+nm(it)+altHtml(it)+'<span class="tag '+tagClass(it.t)+'">'+t(catKey(it.t))+'</span></div>'+
     '<div class="when">'+dot+' '+statusText(it,curMonth)+' · '+seasonRangeRow(it)+' '+trChip+'</div>'+
     '<div class="dots">'+dots+'</div></div>'+
     '<button class="heart '+(isFav(it.n)?'on':'')+'" onclick="event.stopPropagation(); quickFav(\''+escj(it.n)+'\', this)">'+(isFav(it.n)?'♥':'♡')+'</button></div>';
@@ -561,15 +648,16 @@ function renderFavoris(){
   return html+'</div></div>';
 }
 function calRows(){ return DATA.filter(it=>curType==='tous'||it.t===curType).slice().sort((a,b)=>nm(a).localeCompare(nm(b),settings.lang)); }
+function calOrder(){ const now=new Date().getMonth(); return Array.from({length:6},(_,k)=>(now+k)%12); }
 function calBodyHtml(){
-  const now=new Date().getMonth();
+  const ord=calOrder();
   return calRows().map(it=>{ const idx=DATA.indexOf(it);
-    const cells=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<td><div class="cell '+cls+' '+(m===now?'col-now':'')+'"><span class="cl">'+cbLetter(sv)+'</span></div></td>'; }).join('');
+    const cells=ord.map((m,pos)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<td><div class="cell '+cls+' '+(pos===0?'col-now':'')+'"><span class="cl">'+cbLetter(sv)+'</span></div></td>'; }).join('');
     return '<tr><td class="lbl" onclick="openDetail('+idx+')"><span class="em">'+it.e+'</span>'+nm(it)+'</td>'+cells+'</tr>'; }).join('');
 }
 function renderCalendrier(){
-  const now=new Date().getMonth();
-  const head='<tr><th class="lbl"></th>'+months().map((m,i)=>'<th class="'+(i===now?'col-now':'')+'">'+m+'</th>').join('')+'</tr>';
+  const ord=calOrder();
+  const head='<tr><th class="lbl"></th>'+ord.map((m,pos)=>'<th class="'+(pos===0?'col-now':'')+'">'+months()[m]+'</th>').join('')+'</tr>';
   return '<div class="screen"><h1>'+t('cal_title')+'</h1><p class="sub">'+t('cal_sub')+'</p>'+
     '<div style="margin-top:14px">'+segHtml()+'</div>'+
     '<div class="card calwrap" style="padding:12px 12px 14px"><table class="cal"><thead>'+head+'</thead><tbody id="calbody">'+calBodyHtml()+'</tbody></table></div>'+
@@ -579,7 +667,6 @@ function renderCalendrier(){
     '<span class="k"><span class="sw" style="background:var(--s-cons)"><span class="cl">'+t('cbl_cons')+'</span></span>'+t('lg_cons')+'</span>'+
     '<span class="k"><span class="sw" style="background:var(--s-off)"></span>'+t('lg_off')+'</span></div></div>';
 }
-function centerCalendar(){ requestAnimationFrame(()=>{ const wrap=document.querySelector('.calwrap'); if(!wrap) return; const col=wrap.querySelector('thead th.col-now'); if(!col) return; const wr=wrap.getBoundingClientRect(), cr=col.getBoundingClientRect(); wrap.scrollLeft += (cr.left-wr.left) - wrap.clientWidth/2 + cr.width/2; }); }
 function renderReglages(){
   const L=settings.lang, TH=settings.theme;
   return '<div class="screen"><h1>'+t('set_title')+'</h1>'+
@@ -588,11 +675,15 @@ function renderReglages(){
     '<button class="optbtn '+(L==='de'?'on':'')+'" onclick="setLang(\'de\')">Deutsch</button>'+
     '<button class="optbtn '+(L==='it'?'on':'')+'" onclick="setLang(\'it\')">Italiano</button></div>'+
     '<p class="note">'+t('ai_notice')+'</p></div>'+
-    '<h2>'+t('set_theme')+'</h2><div class="card" style="padding:13px"><div class="setrow">'+
-    '<button class="optbtn '+(TH==='light'?'on':'')+'" onclick="setTheme(\'light\')">☀️ '+t('th_light')+'</button>'+
-    '<button class="optbtn '+(TH==='dark'?'on':'')+'" onclick="setTheme(\'dark\')">🌙 '+t('th_dark')+'</button>'+
-    '<button class="optbtn '+(TH==='auto'?'on':'')+'" onclick="setTheme(\'auto\')">🌗 '+t('th_auto')+'</button></div></div>'+
-    '<h2>'+t('set_display')+'</h2><div class="card" style="padding:15px"><div class="togglerow">'+
+    '<h2>'+t('set_display')+'</h2><div class="card" style="padding:15px">'+
+    '<div class="togglerow" style="margin-bottom:13px">'+
+    '<div style="font-size:14.5px; color:var(--ink); flex:1">'+t('set_theme')+'</div>'+
+    '<select class="sel" onchange="setTheme(this.value)">'+
+    '<option value="light"'+(TH==='light'?' selected':'')+'>'+t('th_light')+'</option>'+
+    '<option value="dark"'+(TH==='dark'?' selected':'')+'>'+t('th_dark')+'</option>'+
+    '<option value="auto"'+(TH==='auto'?' selected':'')+'>'+t('th_auto')+'</option>'+
+    '</select></div>'+
+    '<div class="togglerow">'+
     '<div style="font-size:14.5px; color:var(--ink); flex:1">'+t('cb_label')+'</div>'+
     '<div class="switch '+(settings.cb?'on':'')+'" onclick="toggleCb()"><div class="kn"></div></div></div></div>'+
     '<h2>'+t('set_data')+'</h2><div class="card" style="padding:13px"><div class="setrow">'+
@@ -609,24 +700,23 @@ function openDetail(i){
   const heart=document.getElementById('o-heart'); heart.textContent=isFav(it.n)?'♥':'♡'; heart.classList.toggle('on',isFav(it.n));
   const year=Array.from({length:12},(_,m)=>{ const sv=it.s[m]; const cls=sv==='2'?'s2':sv==='3'?'s3':sv==='1'?'s1':''; return '<div class="mc '+(m===now?'now':'')+'"><div class="ml">'+months()[m]+'</div><div class="md '+cls+'"><span class="cl">'+cbLetter(sv)+'</span></div></div>'; }).join('');
   const trc=transportClass(it,now);
-  const originBlock = it.t==='autre' ? '<div class="fval"><span class="ok">✓</span> '+it.o+'</div>'
-    : '<div class="fval"><span class="ok">✓</span> '+it.o+'</div>'+((it.a&&it.a!=='—')?'<div class="fval"><span class="off">○</span> '+t('off_prefix')+' '+it.a+'</div>':'');
-  const frNotice = settings.lang!=='fr' ? '<div class="trans-note">'+t('desc_fr_notice')+'</div>' : '';
+  const cV=fld(it,'c'), oV=fld(it,'o'), aV=fld(it,'a'), vV=fld(it,'v'), kV=fld(it,'k'), dV=fld(it,'d');
+  const originBlock = it.t==='autre' ? '<div class="fval"><span class="ok">✓</span> '+oV+'</div>'
+    : '<div class="fval"><span class="ok">✓</span> '+oV+'</div>'+((aV&&aV!=='—')?'<div class="fval"><span class="off">○</span> '+t('off_prefix')+' '+aV+'</div>':'');
   document.getElementById('o-body').innerHTML=
-    frNotice+
     '<div class="card field"><div class="flabel">🗓️ '+t('f_season')+'</div>'+
       '<div class="fval"><b>'+statusText(it,now)+'</b></div>'+
       '<div class="fval">'+t('s_harvest')+' : '+harvestRange(it)+'</div>'+
       '<div class="fval">'+t('s_avail')+' : '+availRange(it)+'</div>'+
       '<div class="miniyear">'+year+'</div>'+
-      '<div class="src">'+t('src_note')+'</div></div>'+
+      '<div class="src">'+t('src_prefix')+' <a href="https://www.blw.admin.ch" target="_blank" rel="noopener">OFAG</a>, <a href="https://www.gemuese.ch" target="_blank" rel="noopener">gemüse.ch</a>, <a href="https://www.swissmilk.ch" target="_blank" rel="noopener">Swissmilk</a>, <a href="https://www.wwf.ch" target="_blank" rel="noopener">WWF</a><br>'+t('src_vary')+'</div></div>'+
     '<div class="card field"><div class="flabel">🌍 '+t('f_transport')+'</div>'+
       '<div class="fval"><span class="trbig tr-'+trc+'">'+trIcon(trc)+' '+trLabel(trc)+'</span> <span class="off">· '+t('tr_thismonth')+'</span></div></div>'+
-    (it.d?'<div class="card field danger"><div class="flabel">⚠️ '+t('f_safety')+'</div><div class="fval">'+it.d+'</div></div>':'')+
-    '<div class="card field"><div class="flabel">❄️ '+t('f_cons')+'</div><div class="fval">'+it.c+'</div></div>'+
+    (dV?'<div class="card field danger"><div class="flabel">⚠️ '+t('f_safety')+'</div><div class="fval">'+dV+'</div></div>':'')+
+    '<div class="card field"><div class="flabel">❄️ '+t('f_cons')+'</div><div class="fval">'+cV+'</div></div>'+
     '<div class="card field"><div class="flabel">🌱 '+t('f_origin')+'</div>'+originBlock+'</div>'+
-    (it.v?'<div class="card field"><div class="flabel">🌾 '+t('f_var')+'</div><div class="fval">'+it.v+'</div></div>':'')+
-    (it.k?'<div class="card field"><div class="flabel">ℹ️ '+t('f_note')+'</div><div class="fval">'+it.k+'</div></div>':'')+
+    (vV?'<div class="card field"><div class="flabel">🌾 '+t('f_var')+'</div><div class="fval">'+vV+'</div></div>':'')+
+    (kV?'<div class="card field"><div class="flabel">ℹ️ '+t('f_note')+'</div><div class="fval">'+kV+'</div></div>':'')+
     '<div class="card field"><div class="flabel">🔗 '+t('f_links')+'</div><div class="linkrow">'+
       '<a class="linkbtn" href="'+wikiUrl(it)+'" target="_blank" rel="noopener">'+t('link_wiki')+(it.wl==='en'?t('wiki_en'):'')+' ↗</a>'+
       '<a class="linkbtn" href="'+imgUrl(it)+'" target="_blank" rel="noopener">'+t('link_img')+' ↗</a></div></div>'+
@@ -644,7 +734,7 @@ function onComment(i,val){ const it=DATA[i]; setComment(it.n,val); const h=docum
 function fadeSwap(el, html, after){ if(!el) return; el.style.transition='opacity .15s ease, transform .15s ease'; el.style.opacity='0'; el.style.transform='translateY(5px)'; setTimeout(()=>{ el.innerHTML=html; el.style.opacity='1'; el.style.transform='none'; if(after) requestAnimationFrame(after); },140); }
 function quickFav(n,btn){ toggleFav(n); const on=isFav(n); btn.textContent=on?'♥':'♡'; btn.classList.toggle('on',on); btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop'); if(curTab==='favoris') render(); toast(on?t('toast_add'):t('toast_rem')); }
 function changeMonth(d){ curMonth=(curMonth+d+12)%12; render(); const l=document.getElementById('list'); if(l){ l.style.opacity='0'; l.style.transform='translateY(5px)'; requestAnimationFrame(()=>{ l.style.transition='opacity .22s ease, transform .22s ease'; l.style.opacity='1'; l.style.transform='none'; }); } }
-function setType(tp){ curType=tp; document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.cat===tp)); if(curTab==='now'){ const sub=document.getElementById('nowsub'); if(sub) sub.textContent=subText(); fadeSwap(document.getElementById('list'), listHtml()); } else if(curTab==='calendrier'){ fadeSwap(document.getElementById('calbody'), calBodyHtml(), centerCalendar); } }
+function setType(tp){ curType=tp; document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.cat===tp)); if(curTab==='now'){ const sub=document.getElementById('nowsub'); if(sub) sub.textContent=subText(); fadeSwap(document.getElementById('list'), listHtml()); } else if(curTab==='calendrier'){ fadeSwap(document.getElementById('calbody'), calBodyHtml()); } }
 function toggleLocal(){ localOnly=!localOnly; const c=document.querySelector('.chip'); if(c) c.classList.toggle('on',localOnly); fadeSwap(document.getElementById('list'), listHtml()); }
 function bindSearch(){ const q=document.getElementById('q'); if(q){ q.addEventListener('input', e=>{ query=e.target.value; const el=document.getElementById('list'); if(el) el.innerHTML=listHtml(); }); } }
 function switchTab(tp){ curTab=tp; query=''; curMonth=new Date().getMonth(); document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tp)); render(); window.scrollTo(0,0); const child=document.querySelector('#app > .screen'); if(child){ child.classList.remove('anim-in'); void child.offsetWidth; child.classList.add('anim-in'); } }
@@ -653,7 +743,7 @@ function switchTab(tp){ curTab=tp; query=''; curMonth=new Date().getMonth(); doc
 function resolvedTheme(){ const th=settings.theme; return th==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):th; }
 function applyTheme(){ const m=resolvedTheme(); document.documentElement.setAttribute('data-theme',m); const meta=document.getElementById('themeColorMeta'); if(meta) meta.setAttribute('content', m==='dark'?'#15100D':'#FBF7F2'); }
 function applyCb(){ if(settings.cb) document.documentElement.setAttribute('data-cb','1'); else document.documentElement.removeAttribute('data-cb'); }
-function setLang(l){ settings.lang=l; save(); applyStaticI18n(); render(); }
+function setLang(l){ if(l!=='fr' && l!==settings.lang){ const msg=(I18N[l]&&I18N[l].lang_confirm)||''; if(msg && !window.confirm(msg)) return; } settings.lang=l; save(); applyStaticI18n(); render(); }
 function setTheme(th){ settings.theme=th; save(); applyTheme(); render(); }
 function toggleCb(){ settings.cb=!settings.cb; save(); applyCb(); render(); }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(settings.theme==='auto') applyTheme(); });
